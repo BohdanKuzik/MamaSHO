@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Product detail</title>
-</head>
-<body>
-<h1>This is a detailed page about {{ product.name }}</h1>
-<li>
-    <ul>Category: {{ product.category }}</ul>
-    <ul>Price: {{ product.price }}</ul>
-    <ul>Stock: {{ product.stock }}</ul>
-    <ul>Image: {{ product.image }}</ul>
-</li>
-<a href="{% url 'product_list' %}"><-- Back to list</a>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Product: {{ product.name }}</h2>
+<ul>
+    <li>Category: {{ product.category }}</li>
+    <li>Price: {{ product.price }}₴</li>
+    <li>Stock: {{ product.stock }}</li>
+    {% if product.image %}
+        <li><img src="{{ product.image.url }}" alt="{{ product.name }}" width="200"></li>
+    {% endif %}
+</ul>
+
+<p><a href="{% url 'product_list' %}">← Back to list</a></p>
+{% endblock %}

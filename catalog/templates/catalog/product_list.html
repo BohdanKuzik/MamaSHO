@@ -1,22 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Product List</title>
-</head>
-<body>
-<h1>Welcome to the MamaSHO!</h1>
-<h3>Here you can find clothes for yours children</h3>
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>Here you can find clothes for your children</h3>
+<a href="{% url 'add_product' %}">Add new Product</a>
+<ul>
     {% for product in products %}
         <li>
-            <ul>
-               <a href="{% url 'product_detail' product.pk %}">
-                    {{ product.name }}
-               </a>
-            </ul>
+            <a href="{% url 'product_detail' product.pk %}">
+                {{ product.name }} — {{ product.price }}₴
+            </a>
         </li>
     {% empty %}
-        <li>No products</li>
+        <li>No products available</li>
     {% endfor %}
-</body>
-</html>
+</ul>
+{% endblock %}
