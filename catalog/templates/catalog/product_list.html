@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product List</title>
+</head>
+<body>
+<h1>Welcome to the MamaSHO!</h1>
+<h3>Here you can find clothes for yours children</h3>
+    {% for product in products %}
+        <li>
+            <ul>
+               <a href="{% url 'product_detail' product.pk %}">
+                    {{ product.name }}
+               </a>
+            </ul>
+        </li>
+    {% empty %}
+        <li>No products</li>
+    {% endfor %}
+</body>
+</html>
