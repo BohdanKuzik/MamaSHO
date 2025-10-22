@@ -2,6 +2,7 @@
 
 {% block content %}
 <h2>Product: {{ product.name }}</h2>
+    <button><a href="{% url 'edit_product' pk=product.pk %}">Edit the Product</a></button>
 <ul>
     <li>Category: {{ product.category }}</li>
     <li>Price: {{ product.price }}₴</li>
@@ -10,6 +11,7 @@
         <li><img src="{{ product.image.url }}" alt="{{ product.name }}" width="200"></li>
     {% endif %}
 </ul>
-
-<p><a href="{% url 'product_list' %}">← Back to list</a></p>
+<p>
+    <a href="{% url 'product_list' %}">← Back to list</a>
+</p>
 {% endblock %}

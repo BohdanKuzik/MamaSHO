@@ -2,7 +2,9 @@
 
 {% block content %}
 <h3>Here you can find clothes for your children</h3>
-<a href="{% url 'add_product' %}">Add new Product</a>
+<button>
+    <a href="{% url 'add_product' %}">Add new Product</a>
+</button>
 <ul>
     {% for product in products %}
         <li>
