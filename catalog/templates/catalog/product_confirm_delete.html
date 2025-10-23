@@ -1,12 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	<h2>Action on product: {{ product.name }}</h2>
+	<h2>Please confirm that you want to delete: {{ product.name }}</h2>
     <form class="pt-3" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Submit</button>
-        <button><a href="{% url 'product_list' %}">Cancel</a></button>
+        <button><a href="{% url 'edit_product' product.pk %}">Cancel</a></button>
     </form>
-    <button><a href="{% url 'delete_product' pk=product.pk %}">Delete</a></button>
 {% endblock %}

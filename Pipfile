@@ -9,6 +9,7 @@ python-dotenv = "*"
 black = "*"
 pre-commit = "*"
 django-freeze = "*"
+django-tailwind = "*"
 
 [dev-packages]
 ruff = "*"
