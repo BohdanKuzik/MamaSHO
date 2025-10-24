@@ -26,13 +26,31 @@
             </div>
             <div class="stat-title">Total Products</div>
             <div class="stat-value text-primary">{{ products|length }}</div>
-            <div class="stat-desc">In your catalog</div>
+            <div class="stat-desc">In our catalog</div>
+        </div>
+        <div class="stat">
+            <div class="stat-title">
+                Search Products
+            </div>
+            <span class="htmx-indicator">
+                Searching...
+            </span>
+            <label class="stat-value">
+                <input class="form-control"
+                       type="search"
+                       name="search"
+                       placeholder="Begin typing to search.."
+                       hx-get="{% url 'product_search' %}"
+                       hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
+                       hx-target="#search-results"
+                       hx-indicator=".htmx-indicator">
+            </label>
         </div>
     </div>
 
     <!-- Products Grid -->
     {% if products %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="search-results">
             {% for product in products %}
                 <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
                     <figure class="px-4 pt-4">

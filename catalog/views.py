@@ -1,3 +1,6 @@
+from http.client import HTTPResponse
+
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
@@ -42,3 +45,21 @@ class ProductDeleteView(DeleteView):
     model = Product
     template_name = "catalog/product_confirm_delete.html"
     success_url = reverse_lazy("product_list")
+
+
+def product_search_view(request):
+    is_htmx = request.headers.get("HX_Request") == "true"
+    search_query = request.GET.get("search", "")
+
+    if not is_htmx:
+        return None
+
+    if search_query:
+        filtered_products = Product.objects.filter(name__icontains=search_query)
+    else:
+        filtered_products = Product.objects.all()
+    return render(
+        request,
+        "catalog/partials/search_results.html",
+        context={"products": filtered_products},
+    )

@@ -6,6 +6,7 @@ from .views import (
     ProductCreateView,
     ProductUpdateView,
     ProductDeleteView,
+    product_search_view,
 )
 
 
@@ -17,4 +18,5 @@ urlpatterns = [
     path(
         "product/<int:pk>/delete/", ProductDeleteView.as_view(), name="delete_product"
     ),
+    path("product/search/", product_search_view, name="product_search"),
 ]
