@@ -1,16 +1,23 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MamaSHO</title>
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
 </head>
-<body>
-    <h1>MamaSHO — shop where you can find an answer to the question “Sho?”</h1>
-    <hr>
-    {% block content %}
-    {% endblock %}
-
+<body class="min-h-screen">
+    <header class="bg-base-100 shadow-sm border-b border-base-300">
+        <div class="container mx-auto px-4 py-4">
+            <h1 class="text-2xl font-bold text-base-content">MamaSHO — shop where you can find an answer to the question "Sho?"</h1>
+        </div>
+    </header>
+    
+    <main class="flex-1">
+        {% block content %}
+        {% endblock %}
+    </main>
 </body>
 </html>

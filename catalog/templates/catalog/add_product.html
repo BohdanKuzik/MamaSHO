@@ -1,13 +1,145 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Add new Product</h2>
-    <form class="pt-3" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Add</button>
-    </form>
-<p>
-    <a href="{% url 'product_list' %}">← Back to list</a>
-</p>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Breadcrumb -->
+        <div class="text-sm breadcrumbs mb-4">
+            <ul>
+                <li><a href="{% url 'product_list' %}" class="text-primary">Products</a></li>
+                <li>Add New Product</li>
+            </ul>
+        </div>
+
+        <!-- Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Add New Product</h2>
+            <p class="text-base-content/70">Fill in the details below to add a new product to your catalog</p>
+        </div>
+        
+        <!-- Form Card -->
+        <div class="card bg-base-100 shadow-2xl">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="form-control w-full">
+                            <label class="label" for="{{ field.id_for_label }}">
+                                <span class="label-text font-semibold text-base">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-error">*</span>
+                                    {% endif %}
+                                </span>
+                            </label>
+                            
+                            {% if field.name == 'name' %}
+                                <input type="text" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       value="{{ field.value|default:'' }}"
+                                       placeholder="e.g., Baby Cotton T-Shirt"
+                                       class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
+                            
+                            {% elif field.name == 'price' %}
+                                <label class="input-group">
+                                    <input type="number" 
+                                           name="{{ field.name }}" 
+                                           id="{{ field.id_for_label }}"
+                                           value="{{ field.value|default:'' }}"
+                                           step="0.01"
+                                           placeholder="0.00"
+                                           class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
+                                    <span>₴</span>
+                                </label>
+                            
+                            {% elif field.name == 'stock' %}
+                                <input type="number" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       value="{{ field.value|default:'' }}"
+                                       placeholder="0"
+                                       class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
+                            
+                            {% elif field.name == 'category' %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}"
+                                        class="select select-bordered w-full {% if field.errors %}select-error{% endif %}">
+                                    <option disabled selected>Choose a category</option>
+                                    {{ field }}
+                                </select>
+                            
+                            {% elif field.name == 'description' %}
+                                <textarea name="{{ field.name }}" 
+                                          id="{{ field.id_for_label }}"
+                                          placeholder="Describe your product..."
+                                          class="textarea textarea-bordered w-full h-32 {% if field.errors %}textarea-error{% endif %}">{{ field.value|default:'' }}</textarea>
+                            
+                            {% elif field.name == 'image' %}
+                                <input type="file" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       accept="image/*"
+                                       class="file-input file-input-bordered w-full {% if field.errors %}file-input-error{% endif %}" />
+                                <label class="label">
+                                    <span class="label-text-alt">Supported formats: JPG, PNG, WEBP (Max 5MB)</span>
+                                </label>
+                            
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-base-content/60">{{ field.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            
+                            {% if field.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ field.errors.0 }}
+                                    </span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="divider"></div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3 justify-between">
+                        <a href="{% url 'product_list' %}" class="btn btn-outline gap-2 order-2 sm:order-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary gap-2 order-1 sm:order-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Add Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="alert alert-info shadow-lg mt-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h3 class="font-bold">Tips for adding products</h3>
+                <div class="text-xs">Make sure to add clear images and detailed descriptions to help customers make informed decisions.</div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
