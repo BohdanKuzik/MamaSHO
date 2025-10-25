@@ -66,8 +66,10 @@
                                 <select name="{{ field.name }}" 
                                         id="{{ field.id_for_label }}"
                                         class="select select-bordered w-full {% if field.errors %}select-error{% endif %}">
-                                    <option disabled selected>Choose a category</option>
-                                    {{ field }}
+                                    <option value="" disabled {% if not field.value %}selected{% endif %}>Choose a category</option>
+                                    {% for choice in field.field.queryset %}
+                                        <option value="{{ choice.pk }}" {% if field.value == choice.pk %}selected{% endif %}>{{ choice.name }}</option>
+                                    {% endfor %}
                                 </select>
                             
                             {% elif field.name == 'description' %}
