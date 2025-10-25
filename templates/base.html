@@ -9,17 +9,33 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen"
+      x-data="{ loading: false }"
+      @htmx:before-request.window="loading = true"
+      @htmx:after-request.window="loading = false">
     <header class="bg-base-100 shadow-sm border-b border-base-300">
         <div class="container mx-auto px-4 py-4">
-            <h1 class="text-2xl font-bold text-base-content">MamaSHO — shop where you can find an answer to the question "Sho?"</h1>
+            <h1 class="text-2xl font-bold text-base-content">
+                <a href="{% url 'product_list' %}">MamaSHO</a>
+                — shop where you can find an answer to the question "Sho?"
+            </h1>
         </div>
     </header>
-    
     <main class="flex-1">
         {% block content %}
         {% endblock %}
     </main>
+    <div x-show="loading"
+         x-transition
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-base-100 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <p class="text-base-content font-semibold text-lg">Loading...</p>
+        </div>
+    </div>
 </body>
 </html>

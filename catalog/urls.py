@@ -7,6 +7,7 @@ from .views import (
     ProductUpdateView,
     ProductDeleteView,
     product_search_view,
+    product_delete_view,
 )
 
 
@@ -17,6 +18,9 @@ urlpatterns = [
     path("product/<int:pk>/edit/", ProductUpdateView.as_view(), name="edit_product"),
     path(
         "product/<int:pk>/delete/", ProductDeleteView.as_view(), name="delete_product"
+    ),
+    path(
+        "product/<int:pk>/dynamic-delete/", product_delete_view, name="dynamic-delete"
     ),
     path("product/search/", product_search_view, name="product_search"),
 ]

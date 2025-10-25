@@ -1,6 +1,8 @@
 from http.client import HTTPResponse
+from itertools import count
 
-from django.shortcuts import render
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
@@ -45,6 +47,18 @@ class ProductDeleteView(DeleteView):
     model = Product
     template_name = "catalog/product_confirm_delete.html"
     success_url = reverse_lazy("product_list")
+
+
+def product_delete_view(request, pk):
+    obj = get_object_or_404(Product, pk=pk)
+
+    if not request.method == "DELETE":
+        return None
+    obj.delete()
+    amount = Product.objects.count()
+    return render(
+        request, "catalog/partials/product_count.html", context={"amount": amount}
+    )
 
 
 def product_search_view(request):
