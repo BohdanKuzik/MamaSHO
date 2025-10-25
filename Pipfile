@@ -7,6 +7,10 @@ name = "pypi"
 django = "*"
 python-dotenv = "*"
 black = "*"
+pre-commit = "*"
+django-freeze = "*"
+django-tailwind = "*"
+django-browser-reload = "*"
 
 [dev-packages]
 ruff = "*"

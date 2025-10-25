@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-bold text-base-content mb-6 break-words" style="word-break: break-word; overflow-wrap: anywhere;">Edit Product: {{ product.name }}</h2>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-control w-full space-y-4">
+                        {% for field in form %}
+                            <div>
+                                <label class="label" for="{{ field.id_for_label }}">
+                                    <span class="label-text font-semibold">{{ field.label }}</span>
+                                </label>
+                                {% if field.field.widget.input_type == 'file' %}
+                                    <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="file-input file-input-bordered w-full" />
+                                {% elif field.field.widget.input_type == 'textarea' %}
+                                    <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="textarea textarea-bordered w-full h-24">{{ field.value|default:'' }}</textarea>
+                                {% elif field.field.widget.input_type == 'select' %}
+                                    {{ field }}
+                                {% else %}
+                                    <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" value="{{ field.value|default:'' }}" id="{{ field.id_for_label }}" class="input input-bordered w-full" />
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <label class="label">
+                                        <span class="label-text-alt">{{ field.help_text }}</span>
+                                    </label>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ field.errors.0 }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-actions justify-between items-center mt-6">
+                        <a href="{% url 'delete_product' pk=product.pk %}" class="btn btn-error">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                        </a>
+                        <div class="space-x-2">
+                            <a href="{% url 'product_detail' pk=product.pk %}" class="btn btn-outline">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

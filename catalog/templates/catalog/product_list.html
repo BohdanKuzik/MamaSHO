@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h3 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Product Catalog</h3>
+            <p class="text-base-content/70">Browse our collection of children's clothing</p>
+        </div>
+        <a href="{% url 'add_product' %}" class="btn btn-primary gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Product
+        </a>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats stats-vertical sm:stats-horizontal shadow mb-8 w-full max-w-full overflow-hidden">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+            </div>
+            <div class="stat-title">Total Products</div>
+            <div class="stat-value text-primary" id="total-count">{{ products|length }}</div>
+            <div class="stat-desc">In our catalog</div>
+        </div>
+        <div class="stat min-w-0">
+            <div class="stat-title">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Search Products</span>
+                </div>
+            </div>
+            <div class="stat-value py-2">
+                <label class="input input-bordered input-primary flex items-center gap-2 w-full max-w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="search"
+                           name="search"
+                           placeholder="Search by name..."
+                           class="grow min-w-0"
+                           hx-get="{% url 'product_search' %}"
+                           hx-trigger="input changed delay:500ms"
+                           hx-target="#search-results">
+                </label>
+            </div>
+            <div class="stat-desc text-xs text-base-content/60">
+                Real-time search
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="search-results">
+            {% for product in products %}
+                {% include 'catalog/partials/product_card.html' %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="hero min-h-[400px] bg-base-200 rounded-xl">
+            <div class="hero-content text-center">
+                <div class="max-w-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-base-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    <h1 class="text-3xl font-bold">No Products Yet</h1>
+                    <p class="py-6 text-base-content/70">Start building your catalog by adding your first product.</p>
+                    <a href="{% url 'add_product' %}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Your First Product
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
