@@ -2,8 +2,8 @@
 # exit on error
 set -o errexit
 
-# Install dependencies using pipenv (without dev for production)
-pipenv install --ignore-pipfile
+# Install dependencies using pip
+pip install -r requirements.txt
 
 # Collect static files
 python manage.py collectstatic --no-input
