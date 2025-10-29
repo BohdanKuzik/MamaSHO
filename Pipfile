@@ -11,6 +11,8 @@ pre-commit = "*"
 django-freeze = "*"
 django-tailwind = "*"
 django-browser-reload = "*"
+dj-database-url = "*"
+whitenoise = "*"
 
 [dev-packages]
 ruff = "*"

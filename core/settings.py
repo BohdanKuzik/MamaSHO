@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 
+import dj_database_url
+
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -46,13 +48,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Must be after SecurityMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",  # Only for development
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -79,10 +82,11 @@ WSGI_APPLICATION = "core.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        # Replace this value with your local database's connection string.
+        default="sqlite:///db.sqlite3",
+        conn_max_age=600,
+    )
 }
 
 
@@ -120,10 +124,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+# The URL path where static files will be accessible
+STATIC_URL = "/static/"
+
+# Directory where Django will collect all static files for deployment
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Additional directories where Django should look for static files
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# Production settings for static files (when DEBUG=False)
+if not DEBUG:
+    # Enable the WhiteNoise storage backend, which compresses static files
+    # and renames the files with unique names for each version to support
+    # long-term caching
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
