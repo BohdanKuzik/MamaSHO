@@ -1,0 +1,18 @@
+{% for product in products %}
+    {% include 'catalog/partials/product_card.html' %}
+{% endfor %}
+
+{% if page_obj.has_next %}
+<div id="load-more-trigger"
+     hx-get="{% url 'load_more' %}?page={{ page_obj.next_page_number }}"
+     hx-trigger="revealed"
+     hx-target="#search-results"
+     hx-swap="beforeend"
+     hx-swap-oob="true"
+     hx-include="input[name='category'], input[name='min_price'], input[name='max_price'], input[name='available'], input[name='search']"
+     class="text-center p-8">
+    <span class="loading loading-spinner loading-lg"></span>
+</div>
+{% else %}
+<div id="load-more-trigger" hx-swap-oob="true"></div>
+{% endif %}

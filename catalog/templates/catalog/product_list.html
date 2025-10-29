@@ -1,8 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Header Section -->
+<div class="container mx-auto px-4 py-8"
+     x-data="{
+        min_price: new URLSearchParams(window.location.search).get('min_price') || '',
+        max_price: new URLSearchParams(window.location.search).get('max_price') || '',
+        category: new URLSearchParams(window.location.search).get('category') || '',
+        available: new URLSearchParams(window.location.search).get('available') === 'true',
+        search: new URLSearchParams(window.location.search).get('search') || '',
+        
+        updateURL() {
+            const params = new URLSearchParams();
+            if (this.category) params.set('category', this.category);
+            if (this.min_price) params.set('min_price', this.min_price);
+            if (this.max_price) params.set('max_price', this.max_price);
+            if (this.available) params.set('available', this.available);
+            if (this.search) params.set('search', this.search);
+            
+            const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.pushState({}, '', newURL);
+        }
+     }">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
             <h3 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Product Catalog</h3>
@@ -15,19 +33,7 @@
             Add Product
         </a>
     </div>
-
-    <!-- Stats Overview -->
     <div class="stats stats-vertical sm:stats-horizontal shadow mb-8 w-full max-w-full overflow-hidden">
-        <div class="stat">
-            <div class="stat-figure text-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-            </div>
-            <div class="stat-title">Total Products</div>
-            <div class="stat-value text-primary" id="total-count">{{ products|length }}</div>
-            <div class="stat-desc">In our catalog</div>
-        </div>
         <div class="stat min-w-0">
             <div class="stat-title">
                 <div class="flex items-center gap-2">
@@ -46,26 +52,131 @@
                            name="search"
                            placeholder="Search by name..."
                            class="grow min-w-0"
-                           hx-get="{% url 'product_search' %}"
+                           x-model="search"
+                           hx-get="{% url 'product_filter' %}"
                            hx-trigger="input changed delay:500ms"
-                           hx-target="#search-results">
+                           hx-target="#search-results"
+                           hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                           @input="updateURL()">
                 </label>
             </div>
             <div class="stat-desc text-xs text-base-content/60">
                 Real-time search
             </div>
         </div>
-    </div>
+        <div class="stat">
+            <div class="stat-title">Filters</div>
+            <div class="stat-value py-2 flex flex-col gap-2">
+                <input type="hidden" name="category" x-model="category">
+                <input type="hidden" name="min_price" x-model="min_price">
+                <input type="hidden" name="max_price" x-model="max_price">
+                <input type="hidden" name="available" x-model="available">
+                <input type="hidden" name="search" x-model="search">
 
-    <!-- Products Grid -->
+                <select x-model="category"
+                        hx-get="{% url 'product_filter' %}"
+                        hx-trigger="change"
+                        hx-target="#search-results"
+                        hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                        @change="updateURL()"
+                        class="select select-bordered select-sm">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.pk }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <label class="label cursor-pointer gap-2">
+                <span class="label-text">Min price: ₴</span>
+                <input type="number"
+                       min="0"
+                       placeholder="Min price"
+                       hx-get="{% url 'product_filter' %}"
+                       x-model="min_price"
+                       hx-target="#search-results"
+                       hx-trigger="input changed delay:500ms"
+                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                       @input="updateURL()"
+                       step="100"
+                       class="input input-bordered input-sm w-32">
+            </label>
+            <label class="label cursor-pointer gap-2">
+                <span class="label-text">Max price: ₴</span>
+                <input type="number"
+                       min="0"
+                       placeholder="Max price"
+                       hx-get="{% url 'product_filter' %}"
+                       x-model="max_price"
+                       hx-target="#search-results"
+                       hx-trigger="input changed delay:500ms"
+                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                       @input="updateURL()"
+                       step="100"
+                       class="input input-bordered input-sm w-32">
+            </label>
+            <label class="label cursor-pointer gap-2">
+                <span class="label-text">Only Available</span>
+                <input type="checkbox"
+                       hx-get="{% url 'product_filter' %}"
+                       hx-target="#search-results"
+                       hx-trigger="change"
+                       x-model="available"
+                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                       @change="updateURL()"
+                       class="checkbox checkbox-primary">
+            </label>
+            <div class="stat-value py-2">
+                <button type="button"
+                        @click="
+                            category = '';
+                            min_price = '';
+                            max_price = '';
+                            available = false;
+                            search = '';
+                            updateURL();
+                        "
+                        hx-get="{% url 'product_filter' %}"
+                        hx-target="#search-results"
+                        hx-trigger="click"
+                        hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                        class="btn btn-outline btn-sm w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+            </div>
+            <div class="stat-title">Total Products</div>
+            <div class="stat-value text-primary" id="total-count">{{ amount }}</div>
+            <div class="stat-desc">In our catalog</div>
+        </div>
+    </div>
     {% if products %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="search-results">
             {% for product in products %}
                 {% include 'catalog/partials/product_card.html' %}
             {% endfor %}
         </div>
+
+        {% if page_obj.has_next %}
+            <div id="load-more-trigger"
+                 hx-get="{% url 'load_more' %}?page={{ page_obj.next_page_number }}"
+                 hx-trigger="revealed"
+                 hx-target="#search-results"
+                 hx-swap="beforeend"
+                 hx-include="input[name='category'], input[name='min_price'], input[name='max_price'], input[name='available'], input[name='search']"
+                 class="text-center p-8">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+        {% endif %}
     {% else %}
-        <!-- Empty State -->
         <div class="hero min-h-[400px] bg-base-200 rounded-xl">
             <div class="hero-content text-center">
                 <div class="max-w-md">
