@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4 py-10 max-w-md">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Create your account</h2>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <form method="post" class="space-y-3">
+        {% csrf_token %}
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Username</span></label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <label class="label"><span class="label-text-alt text-error">{{ form.username.errors|striptags }}</span></label>
+          {% elif form.username.help_text %}
+            <label class="label"><span class="label-text-alt">{{ form.username.help_text|striptags }}</span></label>
+          {% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Password</span></label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <label class="label"><span class="label-text-alt text-error">{{ form.password1.errors|striptags }}</span></label>
+          {% elif form.password1.help_text %}
+            <label class="label"><span class="label-text-alt">{{ form.password1.help_text|striptags }}</span></label>
+          {% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Confirm password</span></label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <label class="label"><span class="label-text-alt text-error">{{ form.password2.errors|striptags }}</span></label>
+          {% elif form.password2.help_text %}
+            <label class="label"><span class="label-text-alt">{{ form.password2.help_text|striptags }}</span></label>
+          {% endif %}
+        </div>
+
+        <div class="card-actions pt-2">
+          <button class="btn btn-primary w-full" type="submit">Create account</button>
+        </div>
+      </form>
+
+      <p class="mt-2 text-sm">Already have an account? <a class="link" href="{% url 'login' %}">Login</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

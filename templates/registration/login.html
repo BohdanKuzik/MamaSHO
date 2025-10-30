@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-4 py-10 max-w-md">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Login</h2>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form method="post" class="space-y-3">
+        {% csrf_token %}
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Username</span></label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <label class="label"><span class="label-text-alt text-error">{{ form.username.errors|striptags }}</span></label>
+          {% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Password</span></label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <label class="label"><span class="label-text-alt text-error">{{ form.password.errors|striptags }}</span></label>
+          {% endif %}
+        </div>
+
+        <div class="card-actions pt-2">
+          <button class="btn btn-primary w-full" type="submit">Login</button>
+        </div>
+      </form>
+
+      <p class="mt-2 text-sm">No account? <a class="link" href="{% url 'signup' %}">Sign up</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

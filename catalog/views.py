@@ -1,5 +1,4 @@
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -9,6 +8,8 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from catalog.models import Product, Category
 from catalog.forms import CreateProductForm, UpdateProductForm
@@ -104,27 +105,41 @@ class ProductDetailView(DetailView):
     context_object_name = "product"
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Product
     form_class = CreateProductForm
     template_name = "catalog/add_product.html"
     context_object_name = "add_product"
     success_url = reverse_lazy("product_list")
 
+    def test_func(self):
+        user = self.request.user
+        return user.is_staff or user.is_superuser
 
-class ProductUpdateView(UpdateView):
+
+class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     form_class = UpdateProductForm
     template_name = "catalog/product_update.html"
     success_url = reverse_lazy("product_list")
 
+    def test_func(self):
+        user = self.request.user
+        return user.is_staff or user.is_superuser
 
-class ProductDeleteView(DeleteView):
+
+class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Product
     template_name = "catalog/product_confirm_delete.html"
     success_url = reverse_lazy("product_list")
 
+    def test_func(self):
+        user = self.request.user
+        return user.is_staff or user.is_superuser
 
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
 def product_delete_view(request, pk):
     obj = get_object_or_404(Product, pk=pk)
 
