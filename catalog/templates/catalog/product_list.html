@@ -28,7 +28,13 @@
             <p class="text-base-content/70">Browse our collection of children's clothing</p>
         </div>
         <div class="flex items-center gap-2">
-            <button type="button" class="btn btn-outline" @click="showFilters = !showFilters">
+            <button type="button"
+                    class="btn btn-outline"
+                    @click="showFilters = !showFilters"
+                    :class="{
+                      'btn-outline btn-active': showFilters,
+                      'btn-outline': !showFilters
+                    }">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-.553.894l-4 2A1 1 0 019 21v-8.586L3.293 6.707A1 1 0 013 6V4z" />
                 </svg>
