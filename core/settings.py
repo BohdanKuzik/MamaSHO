@@ -131,9 +131,10 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Additional directories where Django should look for static files
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = []
+_project_static = BASE_DIR / "static"
+if _project_static.exists():
+    STATICFILES_DIRS.append(_project_static)
 
 # Production settings for static files (when DEBUG=False)
 if not DEBUG:
