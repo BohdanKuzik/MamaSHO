@@ -9,7 +9,20 @@
         available: new URLSearchParams(window.location.search).get('available') === 'true',
         search: new URLSearchParams(window.location.search).get('search') || '',
         showFilters: false,
-        
+
+        hasActiveFilters() {
+            return !!(this.category || this.min_price || this.max_price || this.available || this.search);
+        },
+
+        clearAll() {
+            this.category = '';
+            this.min_price = '';
+            this.max_price = '';
+            this.available = false;
+            this.search = '';
+            this.$nextTick(() => this.$refs.clearTrigger.click());
+        },
+
         updateURL() {
             const params = new URLSearchParams();
             if (this.category) params.set('category', this.category);
@@ -24,10 +37,24 @@
      }">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-            <h3 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Product Catalog</h3>
+            <h3 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Our Catalog</h3>
             <p class="text-base-content/70">Browse our collection of children's clothing</p>
         </div>
         <div class="flex items-center gap-2">
+            <button type="button"
+                    x-show="hasActiveFilters()"
+                    x-transition
+                    @click="clearAll()"
+                    hx-get="{% url 'product_filter' %}"
+                    hx-target="#search-results"
+                    hx-trigger="click"
+                    hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                    class="btn btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear Filters
+            </button>
             <button type="button"
                     class="btn btn-outline"
                     @click="showFilters = !showFilters"
@@ -142,27 +169,6 @@
                        @change="updateURL()"
                        class="checkbox checkbox-primary">
             </label>
-            <div class="stat-value py-2">
-                <button type="button"
-                        @click="
-                            category = '';
-                            min_price = '';
-                            max_price = '';
-                            available = false;
-                            search = '';
-                            updateURL();
-                        "
-                        hx-get="{% url 'product_filter' %}"
-                        hx-target="#search-results"
-                        hx-trigger="click"
-                        hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                        class="btn btn-outline btn-sm w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Clear Filters
-                </button>
-            </div>
         </div>
         <div class="stat">
             <div class="stat-figure text-primary">

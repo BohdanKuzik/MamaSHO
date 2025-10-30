@@ -93,9 +93,12 @@ def product_filter_view(request):
 
     products = Product.objects.all()
     products = apply_product_filters(products, request)
+    amount_after_filter = products.count()
 
     return render(
-        request, "catalog/partials/search_results.html", context={"products": products}
+        request,
+        "catalog/partials/search_results.html",
+        context={"products": products, "amount_after_filter": amount_after_filter},
     )
 
 

@@ -1,3 +1,9 @@
- {% for product in products %}
+<span id="total-count"
+      class="stat-value text-primary"
+      hx-swap-oob="true">
+    {{ amount_after_filter }}
+</span>
+
+{% for product in products %}
     {% include 'catalog/partials/product_card.html' %}
 {% endfor %}
