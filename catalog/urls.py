@@ -10,6 +10,13 @@ from .views import (
     pagination_cards_view,
     product_filter_view,
 )
+from .basket_views import (
+    basket_detail,
+    basket_add,
+    basket_remove,
+    basket_update,
+    basket_clear,
+)
 
 
 urlpatterns = [
@@ -25,4 +32,9 @@ urlpatterns = [
     ),
     path("product/filter/", product_filter_view, name="product_filter"),
     path("load_more/cards/", pagination_cards_view, name="load_more"),
+    path("basket/", basket_detail, name="basket_detail"),
+    path("basket/add/<int:product_id>/", basket_add, name="basket_add"),
+    path("basket/remove/<int:product_id>/", basket_remove, name="basket_remove"),
+    path("basket/update/<int:product_id>/", basket_update, name="basket_update"),
+    path("basket/clear/", basket_clear, name="basket_clear"),
 ]

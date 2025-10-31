@@ -1,7 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="uk" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
       x-data="{ loading: false }"
       @htmx:before-request.window="loading = true"
       @htmx:after-request.window="loading = false">
-    <header class="shadow-sm border-b border-base-300" style="background-color: #fdf5d8;">
+    <header class="shadow-md border-b" style="background-color: #fdf5d8; border-color: rgba(248, 152, 134, 0.2);">
         <div class="container mx-auto px-4 py-2 flex items-center justify-between">
             <h1 class="flex items-center">
                 <a href="{% url 'product_list' %}" 
@@ -30,20 +30,29 @@
                              class="relative h-10 md:h-12 w-auto object-contain flex-shrink-0 drop-shadow-md group-hover:scale-105 group-hover:drop-shadow-lg transition-all duration-300 transform">
                     </div>
                     <span class="hidden md:inline text-base md:text-lg leading-relaxed">
-                        <span class="text-base-content/60 font-normal italic">— shop where you can find an answer to the question "Sho?"</span>
+                        <span style="color: #f89886;" class="font-normal italic">— магазин, де ви можете знайти відповідь на питання "Шо?"</span>
                     </span>
                 </a>
             </h1>
             <nav class="flex items-center gap-3">
+                <!-- Basket Icon -->
+                <a href="{% url 'basket_detail' %}" class="btn btn-sm btn-primary relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="badge badge-error badge-sm absolute -top-2 -right-2" id="basket-count">
+                        {{ basket|length }}
+                    </span>
+                </a>
                 {% if request.user.is_authenticated %}
-                    <span class="text-sm">Hello, {{ request.user.username }}</span>
+                    <span class="text-sm">Привіт, {{ request.user.username }}</span>
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button class="btn btn-sm">Logout</button>
+                        <button class="btn btn-sm">Вийти</button>
                     </form>
                 {% else %}
-                    <a class="btn btn-sm" href="{% url 'login' %}">Login</a>
-                    <a class="btn btn-sm btn-primary" href="{% url 'signup' %}">Sign up</a>
+                    <a class="btn btn-sm" href="{% url 'login' %}">Увійти</a>
+                    <a class="btn btn-sm btn-primary" href="{% url 'signup' %}">Реєстрація</a>
                 {% endif %}
             </nav>
         </div>
@@ -52,12 +61,55 @@
         {% block content %}
         {% endblock %}
     </main>
+    
+    <!-- Loading Spinner -->
     <div x-show="loading"
          x-transition
          class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="bg-base-100 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
-            <span class="loading loading-spinner loading-lg text-primary"></span>
-            <p class="text-base-content font-semibold text-lg">Loading...</p>
+            <span class="loading loading-spinner loading-lg" style="color: #f89886;"></span>
+            <p class="text-base-content font-semibold text-lg">Завантаження...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Messages -->
+    <div x-data="{ 
+            showToast: false, 
+            toastMessage: '', 
+            toastType: 'success' 
+        }"
+         @htmx:after-request.window="
+            if (event.detail && event.detail.xhr) {
+                const status = event.detail.xhr.status;
+                const path = event.detail.pathInfo || event.detail.requestConfig?.path || event.detail.elt?.getAttribute('hx-post') || '';
+                if (status === 200 && path.includes('basket/add')) {
+                    toastMessage = 'Товар успішно додано до кошика!';
+                    toastType = 'success';
+                    showToast = true;
+                    setTimeout(() => { showToast = false; }, 3000);
+                }
+            }
+         "
+         @basket-updated.window="
+            toastMessage = 'Товар успішно додано до кошика!';
+            toastType = 'success';
+            showToast = true;
+            setTimeout(() => { showToast = false; }, 3000);
+         "
+         class="fixed top-20 right-4 z-50 pointer-events-none">
+        <div x-show="showToast"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-full"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-full"
+             class="alert alert-success shadow-lg max-w-sm pointer-events-auto"
+             style="background-color: #4fc0b5; border-color: #4fc0b5; color: white;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24" style="stroke: white;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span x-text="toastMessage" style="color: white;">Товар успішно додано до кошика!</span>
         </div>
     </div>
 </body>

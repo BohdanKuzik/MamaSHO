@@ -11,7 +11,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit Product
+                Редагувати товар
             </a>
             {% endif %}
         </div>
@@ -38,32 +38,61 @@
                     <!-- Product Details -->
                     <div class="space-y-4">
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Category</div>
+                            <div class="stat-title">Категорія</div>
                             <div class="text-xl sm:text-2xl font-bold break-words" style="word-break: break-word; overflow-wrap: anywhere;">{{ product.category }}</div>
                         </div>
 
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Price</div>
+                            <div class="stat-title">Ціна</div>
                             <div class="stat-value text-2xl text-success">{{ product.price }}₴</div>
                         </div>
 
                         <div class="stat bg-base-200 rounded-lg p-4">
-                            <div class="stat-title">Stock</div>
+                            <div class="stat-title">На складі</div>
                             <div class="stat-value text-2xl {% if product.stock < 10 %}text-error{% else %}text-info{% endif %}">
-                                {{ product.stock }} units
+                                {{ product.stock }} од.
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="card-actions justify-end mt-6">
+                <div class="card-actions justify-between mt-6">
                     <a href="{% url 'product_list' %}" class="btn btn-outline">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        Back to list
+                        Назад до списку
                     </a>
+                    {% if product.available and product.stock > 0 %}
+                    <form method="post" action="{% url 'basket_add' product_id=product.pk %}" class="inline" id="add-to-basket-form">
+                        {% csrf_token %}
+                        <div class="flex items-center gap-3">
+                            <label class="label">
+                                <span class="label-text mr-2">Кількість:</span>
+                                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" 
+                                       class="input input-bordered w-20" id="quantity-input">
+                            </label>
+                            <button type="button" 
+                                    class="btn btn-primary"
+                                    hx-post="{% url 'basket_add' product_id=product.pk %}"
+                                    hx-include="#add-to-basket-form"
+                                    hx-target="body"
+                                    hx-swap="none"
+                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                    hx-on::after-request="this.textContent = 'Додано!'; setTimeout(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'h-5 w-5 mr-2\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\' /></svg>Додати в кошик'; }, 1000);">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Додати в кошик
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-primary" disabled>
+                        Товар недоступний
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>

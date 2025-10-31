@@ -13,8 +13,8 @@
 
         <!-- Header -->
         <div class="mb-6">
-            <h2 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Add New Product</h2>
-            <p class="text-base-content/70">Fill in the details below to add a new product to your catalog</p>
+            <h2 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Додати новий товар</h2>
+            <p class="text-base-content/70">Заповніть деталі нижче, щоб додати новий товар до вашого каталогу</p>
         </div>
         
         <!-- Form Card -->
@@ -39,7 +39,7 @@
                                        name="{{ field.name }}" 
                                        id="{{ field.id_for_label }}"
                                        value="{{ field.value|default:'' }}"
-                                       placeholder="e.g., Baby Cotton T-Shirt"
+                                       placeholder="напр., Дитяча футболка"
                                        class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
                             
                             {% elif field.name == 'price' %}
@@ -66,7 +66,7 @@
                                 <select name="{{ field.name }}" 
                                         id="{{ field.id_for_label }}"
                                         class="select select-bordered w-full {% if field.errors %}select-error{% endif %}">
-                                    <option value="" disabled {% if not field.value %}selected{% endif %}>Choose a category</option>
+                                    <option value="" disabled {% if not field.value %}selected{% endif %}>Оберіть категорію</option>
                                     {% for choice in field.field.queryset %}
                                         <option value="{{ choice.pk }}" {% if field.value == choice.pk %}selected{% endif %}>{{ choice.name }}</option>
                                     {% endfor %}
@@ -75,7 +75,7 @@
                             {% elif field.name == 'description' %}
                                 <textarea name="{{ field.name }}" 
                                           id="{{ field.id_for_label }}"
-                                          placeholder="Describe your product..."
+                                          placeholder="Опишіть ваш товар..."
                                           class="textarea textarea-bordered w-full h-32 {% if field.errors %}textarea-error{% endif %}">{{ field.value|default:'' }}</textarea>
                             
                             {% elif field.name == 'image' %}
@@ -85,7 +85,7 @@
                                        accept="image/*"
                                        class="file-input file-input-bordered w-full {% if field.errors %}file-input-error{% endif %}" />
                                 <label class="label">
-                                    <span class="label-text-alt">Supported formats: JPG, PNG, WEBP (Max 5MB)</span>
+                                    <span class="label-text-alt">Підтримувані формати: JPG, PNG, WEBP (Макс. 5MB)</span>
                                 </label>
                             
                             {% else %}
@@ -119,13 +119,13 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Cancel
+                            Скасувати
                         </a>
                         <button type="submit" class="btn btn-primary gap-2 order-1 sm:order-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
-                            Add Product
+                            Додати товар
                         </button>
                     </div>
                 </form>
@@ -138,8 +138,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
-                <h3 class="font-bold">Tips for adding products</h3>
-                <div class="text-xs">Make sure to add clear images and detailed descriptions to help customers make informed decisions.</div>
+                <h3 class="font-bold">Поради щодо додавання товарів</h3>
+                <div class="text-xs">Переконайтеся, що додаєте чіткі зображення та детальні описи, щоб допомогти клієнтам приймати обґрунтовані рішення.</div>
             </div>
         </div>
     </div>

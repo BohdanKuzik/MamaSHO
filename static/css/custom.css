@@ -1,18 +1,313 @@
+/* MamaSHO Color Scheme */
+/* #f89886 - Coral (primary actions, accents) */
+/* #fdf5d8 - Cream (backgrounds, buttons) */
+/* #4fc0b5 - Teal (secondary accents, info) */
+/* #fdc631 - Golden Yellow (highlights, important) */
+
+:root {
+  --color-coral: #f89886;
+  --color-cream: #fdf5d8;
+  --color-teal: #4fc0b5;
+  --color-golden: #fdc631;
+}
+
+/* Primary Buttons - White background with coral text and border */
 .btn.btn-primary,
 .btn-primary {
-  background-color: #fdf5d8 !important;
-  border-color: black !important;
-  color: #1f2937 !important;
+  background-color: white !important;
+  border-color: #f89886 !important;
+  color: #f89886 !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn.btn-primary svg,
+.btn-primary svg {
+  stroke: #f89886 !important;
+  color: #f89886 !important;
 }
 
 .btn.btn-primary:hover,
 .btn-primary:hover {
-  background-color: #f9eed0 !important;
-  border-color: #f9eed0 !important;
+  background-color: #f89886 !important;
+  border-color: #f89886 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(248, 152, 134, 0.3) !important;
+}
+
+.btn.btn-primary:hover svg,
+.btn-primary:hover svg {
+  stroke: white !important;
+  color: white !important;
+  fill: white !important;
 }
 
 .btn.btn-primary:focus,
 .btn-primary:focus {
-  outline-color: #fdf5d8 !important;
+  outline-color: #f89886 !important;
+  box-shadow: 0 0 0 3px rgba(248, 152, 134, 0.2) !important;
+}
+
+/* Secondary buttons - Teal with white background */
+.btn-outline {
+  border-color: #4fc0b5 !important;
+  color: #4fc0b5 !important;
+  background-color: white !important;
+}
+
+.btn-outline svg {
+  stroke: #4fc0b5 !important;
+  color: #4fc0b5 !important;
+}
+
+.btn-outline:hover {
+  background-color: #4fc0b5 !important;
+  border-color: #4fc0b5 !important;
+  color: white !important;
+}
+
+.btn-outline:hover svg {
+  stroke: white !important;
+  color: white !important;
+}
+
+.btn-outline.btn-active {
+  background-color: #4fc0b5 !important;
+  border-color: #4fc0b5 !important;
+  color: white !important;
+}
+
+.btn-outline.btn-active svg {
+  stroke: white !important;
+  color: white !important;
+}
+
+/* Delete button - Coral color scheme */
+.btn-error,
+.btn-outline.btn-error {
+  border-color: #f89886 !important;
+  color: #f89886 !important;
+  background-color: white !important;
+}
+
+.btn-error svg,
+.btn-outline.btn-error svg {
+  stroke: #f89886 !important;
+  color: #f89886 !important;
+}
+
+.btn-error:hover,
+.btn-outline.btn-error:hover {
+  background-color: #f89886 !important;
+  border-color: #f89886 !important;
+  color: white !important;
+}
+
+.btn-error:hover svg,
+.btn-outline.btn-error:hover svg {
+  stroke: white !important;
+  color: white !important;
+  fill: white !important;
+}
+
+/* Text colors */
+.text-primary {
+  color: #f89886 !important;
+}
+
+.text-teal {
+  color: #4fc0b5 !important;
+}
+
+.text-golden {
+  color: #fdc631 !important;
+}
+
+/* Inputs with coral accent */
+.input-primary {
+  border-color: #f89886 !important;
+}
+
+.input-primary:focus {
+  border-color: #f89886 !important;
+  outline-color: #f89886 !important;
+  box-shadow: 0 0 0 3px rgba(248, 152, 134, 0.1) !important;
+}
+
+/* Checkboxes */
+.checkbox-primary {
+  border-color: #f89886 !important;
+}
+
+.checkbox-primary:checked {
+  background-color: #f89886 !important;
+  border-color: #f89886 !important;
+}
+
+/* Loading spinner */
+.loading-primary {
+  color: #f89886 !important;
+}
+
+/* Stats and highlights */
+.stat-figure.text-primary,
+.stat-value.text-primary {
+  color: #f89886 !important;
+}
+
+/* Cards with soft shadows */
+.card {
+  border: 1px solid rgba(248, 152, 134, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(248, 152, 134, 0.15) !important;
+  transform: translateY(-4px) !important;
+}
+
+/* Badge improvements */
+.badge-success {
+  background-color: #4fc0b5 !important;
+  color: white !important;
+}
+
+.badge-warning {
+  background-color: #fdc631 !important;
+  color: #1f2937 !important;
+}
+
+/* Price color - golden */
+.price-golden {
+  color: #fdc631 !important;
+}
+
+/* Links with coral */
+a:not(.btn) {
+  color: #f89886 !important;
+  transition: color 0.2s ease !important;
+}
+
+a:not(.btn):hover {
+  color: #4fc0b5 !important;
+}
+
+/* Body background - lighter cream tint */
+body {
+  background-color: #fffef9 !important;
+}
+
+/* Main content area */
+main {
+  background: linear-gradient(to bottom, rgba(253, 245, 216, 0.3) 0%, #fffef9 100%) !important;
+  min-height: calc(100vh - 80px) !important;
+}
+
+/* Headings with coral accent */
+h1, h2 {
+  color: #1f2937 !important;
+}
+
+/* Catalog heading - coral color */
+h3.text-3xl,
+h3[style*="color: #f89886"] {
+  color: #f89886 !important;
+}
+
+/* Stats blocks with improved styling */
+.stats {
+  border: 1px solid rgba(248, 152, 134, 0.15) !important;
+  background: white !important;
+  border-radius: 12px !important;
+}
+
+.stat {
+  border-color: rgba(248, 152, 134, 0.1) !important;
+}
+
+/* Buttons improvements */
+.btn {
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* Extra small buttons */
+.btn-xs {
+  min-height: 1.5rem !important;
+  height: 1.5rem !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
+/* Input improvements */
+.input {
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Card improvements */
+.card {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+/* Basket Add Button - Teal color scheme */
+.basket-add-btn {
+  background-color: #4fc0b5 !important;
+  border-color: #4fc0b5 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(79, 192, 181, 0.2) !important;
+}
+
+.basket-add-btn svg {
+  stroke: white !important;
+  color: white !important;
+}
+
+.basket-add-btn:hover:not(:disabled) {
+  background-color: #3aa89f !important;
+  border-color: #3aa89f !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(79, 192, 181, 0.4) !important;
+}
+
+.basket-add-btn:hover:not(:disabled) svg {
+  stroke: white !important;
+  color: white !important;
+  transform: scale(1.1) !important;
+}
+
+.basket-add-btn:active:not(:disabled) {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 6px rgba(79, 192, 181, 0.3) !important;
+}
+
+.basket-add-btn:disabled {
+  cursor: not-allowed !important;
+  background-color: #d1d5db !important;
+  border-color: #d1d5db !important;
+  color: #6b7280 !important;
+}
+
+.basket-add-btn:disabled svg {
+  stroke: #6b7280 !important;
+  color: #6b7280 !important;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, transform, box-shadow !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-duration: 150ms !important;
 }
 

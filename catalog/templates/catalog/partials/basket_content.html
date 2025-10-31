@@ -1,0 +1,131 @@
+{% include 'catalog/partials/basket_count.html' %}
+<div id="basket-content">
+    {% if basket %}
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <div class="overflow-x-auto">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Товар</th>
+                                <th>Ціна</th>
+                                <th>Кількість</th>
+                                <th>Сума</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in basket %}
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-4">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" 
+                                                     alt="{{ item.product.name }}" 
+                                                     class="w-16 h-16 object-cover rounded-lg">
+                                            {% else %}
+                                                <div class="w-16 h-16 bg-base-200 rounded-lg flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <a href="{% url 'product_detail' pk=item.product.pk %}" 
+                                                   class="font-semibold hover:text-primary">
+                                                    {{ item.product.name }}
+                                                </a>
+                                                <p class="text-sm text-base-content/60">{{ item.product.category }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="font-semibold price-golden">{{ item.price }}₴</span>
+                                    </td>
+                                    <td>
+                                        <form method="post" 
+                                              action="{% url 'basket_update' product_id=item.product.pk %}"
+                                              class="flex items-center gap-2">
+                                            {% csrf_token %}
+                                            <input type="number" 
+                                                   name="quantity" 
+                                                   value="{{ item.quantity }}" 
+                                                   min="1" 
+                                                   max="{{ item.product.stock }}"
+                                                   class="input input-bordered w-20 input-sm"
+                                                   onchange="this.form.submit()"
+                                                   hx-post="{% url 'basket_update' product_id=item.product.pk %}"
+                                                   hx-include="this"
+                                                   hx-target="#basket-content"
+                                                   hx-swap="innerHTML"
+                                                   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <span class="font-bold text-lg price-golden">{{ item.total_price }}₴</span>
+                                    </td>
+                                    <td>
+                                        <button type="button" 
+                                                class="btn btn-error btn-sm"
+                                                style="pointer-events: auto; z-index: 10; position: relative; cursor: pointer;"
+                                                hx-post="{% url 'basket_remove' product_id=item.product.pk %}"
+                                                hx-target="#basket-content"
+                                                hx-swap="innerHTML"
+                                                hx-select="#basket-content"
+                                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                                onclick="event.stopPropagation(); return true;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total and Checkout -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xl font-semibold">Всього:</span>
+                    <span class="text-2xl font-bold price-golden">{{ basket.get_total_price }}₴</span>
+                </div>
+                <div class="card-actions justify-end">
+                    <a href="{% url 'product_list' %}" class="btn btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Продовжити покупки
+                    </a>
+                    <button class="btn btn-primary" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Оформити замовлення
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty Basket -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body text-center py-16">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-base-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <h3 class="text-2xl font-bold mb-2">Ваш кошик порожній</h3>
+                <p class="text-base-content/70 mb-6">Додайте товари в кошик, щоб зробити покупку</p>
+                <a href="{% url 'product_list' %}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Перейти до каталогу
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>

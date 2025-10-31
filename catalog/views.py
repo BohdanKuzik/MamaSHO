@@ -34,7 +34,7 @@ def apply_product_filters(products, request):
     if min_price and min_price != "" and min_price != "0":
         products = products.filter(price__gte=min_price)
 
-    if available_only in ["True", True, "on"]:
+    if available_only in ["True", True, "on", 1, "true"]:
         products = products.filter(available=True)
 
     if search_query:

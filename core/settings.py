@@ -70,6 +70,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "catalog.context_processors.basket",
             ],
         },
     },
@@ -155,3 +156,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication redirects
 LOGIN_REDIRECT_URL = "product_list"
 LOGOUT_REDIRECT_URL = "product_list"
+
+# Basket settings
+BASKET_SESSION_ID = "basket"
