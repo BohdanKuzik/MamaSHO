@@ -1,0 +1,18 @@
+.btn.btn-primary,
+.btn-primary {
+  background-color: #fdf5d8 !important;
+  border-color: black !important;
+  color: #1f2937 !important;
+}
+
+.btn.btn-primary:hover,
+.btn-primary:hover {
+  background-color: #f9eed0 !important;
+  border-color: #f9eed0 !important;
+}
+
+.btn.btn-primary:focus,
+.btn-primary:focus {
+  outline-color: #fdf5d8 !important;
+}
+

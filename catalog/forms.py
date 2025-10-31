@@ -11,4 +11,4 @@ class CreateProductForm(forms.ModelForm):
 class UpdateProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ("name", "price", "stock")
+        fields = "__all__"
