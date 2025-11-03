@@ -1,0 +1,46 @@
+{% if product.image or product.images.all %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Поточні зображення</span>
+        </label>
+        <div class="grid grid-cols-3 gap-2">
+            {% if product.image %}
+                <div class="relative group">
+                    <img src="{{ product.image.url }}" alt="Main image" class="w-full h-24 object-cover rounded-lg border-2" style="border-color: #f89886;">
+                    <span class="absolute top-1 right-1 bg-primary text-primary-content rounded-full px-2 py-1 text-xs font-bold">Головне</span>
+                    <button type="button"
+                            class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
+                            hx-post="{% url 'delete_main_product_image' product_id=product.pk %}"
+                            hx-target="#current-images-list"
+                            hx-swap="innerHTML"
+                            hx-confirm="Ви впевнені, що хочете видалити головне зображення?"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            onclick="event.stopPropagation();">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            {% endif %}
+            {% for img in product.images.all %}
+                <div class="relative group">
+                    <img src="{{ img.image.url }}" alt="Image {{ img.id }}" class="w-full h-24 object-cover rounded-lg">
+                    <span class="absolute top-1 right-1 bg-base-100 rounded-full p-1 text-xs">#{{ img.order|add:1 }}</span>
+                    <button type="button"
+                            class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
+                            hx-post="{% url 'delete_product_image' product_id=product.pk image_id=img.pk %}"
+                            hx-target="#current-images-list"
+                            hx-swap="innerHTML"
+                            hx-confirm="Ви впевнені, що хочете видалити це зображення?"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            onclick="event.stopPropagation();">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+

@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     ListView,
     DetailView,
@@ -10,8 +10,11 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import models
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 
-from catalog.models import Product, Category
+from catalog.models import Product, Category, ProductImage
 from catalog.forms import CreateProductForm, UpdateProductForm
 
 
@@ -119,16 +122,77 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         user = self.request.user
         return user.is_staff or user.is_superuser
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        images = []
+        index = 0
+        while True:
+            image_key = f"images_{index}"
+            image_file = self.request.FILES.get(image_key)
+            if not image_file:
+                break
+            images.append(image_file)
+            index += 1
+
+        if images:
+            self.object.image = images[0]
+            self.object.save()
+
+            ProductImage.objects.create(product=self.object, image=images[0], order=0)
+
+            for order, image in enumerate(images[1:], start=1):
+                ProductImage.objects.create(
+                    product=self.object, image=image, order=order
+                )
+        return response
+
 
 class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     form_class = UpdateProductForm
     template_name = "catalog/product_update.html"
-    success_url = reverse_lazy("product_list")
 
     def test_func(self):
         user = self.request.user
         return user.is_staff or user.is_superuser
+
+    def get_success_url(self):
+        return reverse("product_detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        images = []
+        index = 0
+        while True:
+            image_key = f"images_{index}"
+            image_file = self.request.FILES.get(image_key)
+            if not image_file:
+                break
+            images.append(image_file)
+            index += 1
+
+        if images:
+            max_order = (
+                self.object.images.aggregate(max_order=models.Max("order"))["max_order"]
+                or -1
+            )
+
+            if not self.object.image:
+                self.object.image = images[0]
+                self.object.save()
+                ProductImage.objects.create(
+                    product=self.object, image=images[0], order=0
+                )
+                for order, image in enumerate(images[1:], start=1):
+                    ProductImage.objects.create(
+                        product=self.object, image=image, order=order
+                    )
+            else:
+                for order, image in enumerate(images, start=max_order + 1):
+                    ProductImage.objects.create(
+                        product=self.object, image=image, order=order
+                    )
+        return response
 
 
 class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -168,3 +232,44 @@ def pagination_cards_view(request):
         "catalog/partials/pagination_cards.html",
         context={"products": page_obj.object_list, "page_obj": page_obj},
     )
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@require_POST
+def delete_product_image(request, product_id, image_id):
+    product = get_object_or_404(Product, id=product_id)
+    image = get_object_or_404(ProductImage, id=image_id, product=product)
+
+    image.image.delete(save=False)
+    image.delete()
+
+    product.refresh_from_db()
+
+    if request.headers.get("HX-Request") == "true":
+        return render(
+            request, "catalog/partials/product_images_list.html", {"product": product}
+        )
+
+    return redirect("edit_product", pk=product_id)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@require_POST
+def delete_main_product_image(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    if product.image:
+        product.image.delete(save=False)
+        product.image = None
+        product.save()
+
+    product.refresh_from_db()
+
+    if request.headers.get("HX-Request") == "true":
+        return render(
+            request, "catalog/partials/product_images_list.html", {"product": product}
+        )
+
+    return redirect("edit_product", pk=product_id)

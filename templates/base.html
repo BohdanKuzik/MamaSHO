@@ -18,7 +18,7 @@
       x-data="{ loading: false }"
       @htmx:before-request.window="loading = true"
       @htmx:after-request.window="loading = false">
-    <header class="shadow-md border-b" style="background-color: #fdf5d8; border-color: rgba(248, 152, 134, 0.2);">
+    <header class="shadow-md border-b" style="background-color: #fdf5d8; z-index: 10; position:  sticky; top: 0; border-color: rgba(248, 152, 134, 0.2);">
         <div class="container mx-auto px-4 py-2 flex items-center justify-between">
             <h1 class="flex items-center">
                 <a href="{% url 'product_list' %}" 

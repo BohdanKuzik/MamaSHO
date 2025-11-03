@@ -9,6 +9,8 @@ from .views import (
     product_delete_view,
     pagination_cards_view,
     product_filter_view,
+    delete_product_image,
+    delete_main_product_image,
 )
 from .basket_views import (
     basket_detail,
@@ -32,6 +34,16 @@ urlpatterns = [
     ),
     path("product/filter/", product_filter_view, name="product_filter"),
     path("load_more/cards/", pagination_cards_view, name="load_more"),
+    path(
+        "product/<int:product_id>/image/<int:image_id>/delete/",
+        delete_product_image,
+        name="delete_product_image",
+    ),
+    path(
+        "product/<int:product_id>/main-image/delete/",
+        delete_main_product_image,
+        name="delete_main_product_image",
+    ),
     path("basket/", basket_detail, name="basket_detail"),
     path("basket/add/<int:product_id>/", basket_add, name="basket_add"),
     path("basket/remove/<int:product_id>/", basket_remove, name="basket_remove"),

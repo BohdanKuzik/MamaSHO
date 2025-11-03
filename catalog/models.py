@@ -28,6 +28,20 @@ class Product(models.Model):
         ordering = ("-stock",)
 
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="images"
+    )
+    image = models.ImageField(upload_to="products/")
+    order = models.PositiveIntegerField(default=0, help_text="Порядок відображення")
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return f"Image {self.id} for {self.product.name}"
+
+
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20, blank=True, null=True)

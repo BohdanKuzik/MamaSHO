@@ -81,20 +81,17 @@
         <div class="stat min-w-0">
             <div class="stat-title">
                 <div class="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #f89886;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
                     <span>Пошук товарів</span>
                 </div>
             </div>
             <div class="stat-value py-2">
                 <label class="input input-bordered input-primary flex items-center gap-2 w-full max-w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #f89886;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <input type="search"
                            name="search"
-                           placeholder="Пошук за назвою..."
+                           placeholder="Пошук товарів..."
                            class="grow min-w-0"
                            x-model="search"
                            hx-get="{% url 'product_filter' %}"
@@ -103,9 +100,6 @@
                            hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
                            @input="updateURL()">
                 </label>
-            </div>
-            <div class="stat-desc text-xs text-base-content/60">
-                Пошук в реальному часі
             </div>
         </div>
         <div class="stat" x-cloak x-show="showFilters" x-transition>
@@ -182,7 +176,7 @@
         </div>
     </div>
     {% if products %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="search-results">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4" id="search-results">
             {% for product in products %}
                 {% include 'catalog/partials/product_card.html' %}
             {% endfor %}

@@ -10,20 +10,16 @@
                 <li>Add New Product</li>
             </ul>
         </div>
-
-        <!-- Header -->
         <div class="mb-6">
             <h2 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Додати новий товар</h2>
             <p class="text-base-content/70">Заповніть деталі нижче, щоб додати новий товар до вашого каталогу</p>
         </div>
-        
-        <!-- Form Card -->
         <div class="card bg-base-100 shadow-2xl">
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data" class="space-y-6">
                     {% csrf_token %}
-                    
                     {% for field in form %}
+                        {% if field.name != 'image' %}
                         <div class="form-control w-full">
                             <label class="label" for="{{ field.id_for_label }}">
                                 <span class="label-text font-semibold text-base">
@@ -33,7 +29,6 @@
                                     {% endif %}
                                 </span>
                             </label>
-                            
                             {% if field.name == 'name' %}
                                 <input type="text" 
                                        name="{{ field.name }}" 
@@ -41,7 +36,6 @@
                                        value="{{ field.value|default:'' }}"
                                        placeholder="напр., Дитяча футболка"
                                        class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
-                            
                             {% elif field.name == 'price' %}
                                 <label class="input-group">
                                     <input type="number" 
@@ -53,7 +47,6 @@
                                            class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
                                     <span>₴</span>
                                 </label>
-                            
                             {% elif field.name == 'stock' %}
                                 <input type="number" 
                                        name="{{ field.name }}" 
@@ -61,7 +54,6 @@
                                        value="{{ field.value|default:'' }}"
                                        placeholder="0"
                                        class="input input-bordered w-full {% if field.errors %}input-error{% endif %}" />
-                            
                             {% elif field.name == 'category' %}
                                 <select name="{{ field.name }}" 
                                         id="{{ field.id_for_label }}"
@@ -71,21 +63,19 @@
                                         <option value="{{ choice.pk }}" {% if field.value == choice.pk %}selected{% endif %}>{{ choice.name }}</option>
                                     {% endfor %}
                                 </select>
-                            
                             {% elif field.name == 'description' %}
                                 <textarea name="{{ field.name }}" 
                                           id="{{ field.id_for_label }}"
                                           placeholder="Опишіть ваш товар..."
                                           class="textarea textarea-bordered w-full h-32 {% if field.errors %}textarea-error{% endif %}">{{ field.value|default:'' }}</textarea>
-                            
-                            {% elif field.name == 'image' %}
-                                <input type="file" 
-                                       name="{{ field.name }}" 
-                                       id="{{ field.id_for_label }}"
-                                       accept="image/*"
-                                       class="file-input file-input-bordered w-full {% if field.errors %}file-input-error{% endif %}" />
-                                <label class="label">
-                                    <span class="label-text-alt">Підтримувані формати: JPG, PNG, WEBP (Макс. 5MB)</span>
+                            {% elif field.name == 'available' %}
+                                <label class="label cursor-pointer justify-start gap-3">
+                                    <input type="checkbox" 
+                                           name="{{ field.name }}" 
+                                           id="{{ field.id_for_label }}"
+                                           {% if field.value %}checked{% endif %}
+                                           class="checkbox checkbox-primary" />
+                                    <span class="label-text font-semibold text-base">{{ field.label }}</span>
                                 </label>
                             
                             {% else %}
@@ -109,11 +99,51 @@
                                 </label>
                             {% endif %}
                         </div>
+                        {% endif %}
                     {% endfor %}
                     
+                    <div class="form-control w-full"
+                         x-data="{ 
+                             imageFields: 1,
+                             addField() { this.imageFields++; },
+                             removeField() { if (this.imageFields > 1) this.imageFields--; }
+                         }">
+                        <label class="label">
+                            <span class="label-text font-semibold text-base">
+                                Зображення товару
+                                <span class="text-error">*</span>
+                            </span>
+                        </label>
+                        <template x-for="(field, index) in Array(imageFields)" :key="index">
+                            <div class="flex gap-2 mb-2">
+                                <input type="file" 
+                                       :name="'images_' + index"
+                                       accept="image/*"
+                                       :required="index === 0"
+                                       class="file-input file-input-bordered w-full flex-1" />
+                                <button type="button" 
+                                        @click="removeField()"
+                                        x-show="imageFields > 1 && index === imageFields - 1"
+                                        class="btn btn-error btn-square">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                        <button type="button" 
+                                @click="addField()"
+                                class="btn btn-primary btn-sm gap-2 mt-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Додати ще одне зображення
+                        </button>
+                        <label class="label">
+                            <span class="label-text-alt">Натисніть "+" щоб додати більше полів для завантаження (Макс. 5MB кожне)</span>
+                        </label>
+                    </div>
                     <div class="divider"></div>
-                    
-                    <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3 justify-between">
                         <a href="{% url 'product_list' %}" class="btn btn-outline gap-2 order-2 sm:order-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,8 +161,6 @@
                 </form>
             </div>
         </div>
-
-        <!-- Help Card -->
         <div class="alert alert-info shadow-lg mt-6">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
