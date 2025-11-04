@@ -3,38 +3,57 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8"
      x-data="{
-        min_price: new URLSearchParams(window.location.search).get('min_price') || '',
-        max_price: new URLSearchParams(window.location.search).get('max_price') || '',
-        category: new URLSearchParams(window.location.search).get('category') || '',
-        available: new URLSearchParams(window.location.search).get('available') === 'true',
-        search: new URLSearchParams(window.location.search).get('search') || '',
+        filterKeys: ['category', 'min_price', 'max_price', 'available', 'search'],
+        
+        init() {
+            const params = new URLSearchParams(window.location.search);
+            this.filterKeys.forEach(key => {
+                const value = params.get(key);
+                if (key === 'available') {
+                    this[key] = value === 'true';
+                } else {
+                    this[key] = value || '';
+                }
+            });
+        },
+        
+        category: '',
+        min_price: '',
+        max_price: '',
+        available: false,
+        search: '',
+        
         showFilters: false,
-
+        
         hasActiveFilters() {
-            return !!(this.category || this.min_price || this.max_price || this.available || this.search);
+            return this.filterKeys.some(key => {
+                const value = this[key];
+                return value !== '' && value !== false && value !== null && value !== undefined;
+            });
         },
-
+        
         clearAll() {
-            this.category = '';
-            this.min_price = '';
-            this.max_price = '';
-            this.available = false;
-            this.search = '';
-            this.$nextTick(() => this.$refs.clearTrigger.click());
+            this.filterKeys.forEach(key => {
+                this[key] = key === 'available' ? false : '';
+            });
+            this.updateURL();
+            this.$nextTick(() => this.$refs.clearTrigger?.click());
         },
-
+        
         updateURL() {
             const params = new URLSearchParams();
-            if (this.category) params.set('category', this.category);
-            if (this.min_price) params.set('min_price', this.min_price);
-            if (this.max_price) params.set('max_price', this.max_price);
-            if (this.available) params.set('available', this.available);
-            if (this.search) params.set('search', this.search);
+            this.filterKeys.forEach(key => {
+                const value = this[key];
+                if (value !== '' && value !== false && value !== null && value !== undefined) {
+                    params.set(key, value);
+                }
+            });
             
             const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
             window.history.pushState({}, '', newURL);
         }
-     }">
+     }"
+     x-init="init()">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
             <h3 class="text-3xl md:text-4xl font-bold mb-2" style="color: #f89886;">Наш каталог</h3>

@@ -12,62 +12,66 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.views.decorators.http import require_POST
-from django.http import JsonResponse
 
 from catalog.models import Product, Category, ProductImage
 from catalog.forms import CreateProductForm, UpdateProductForm
 
 
 def apply_product_filters(products, request):
-    """Apply filters to products based on request parameters"""
-    category_id = request.GET.get("category", "")
-    min_price = request.GET.get("min_price", "")
-    max_price = request.GET.get("max_price", "")
-    available_only = request.GET.get("available", "")
-    search_query = request.GET.get("search", "")
-
     products = products.distinct()
 
-    if category_id:
-        products = products.filter(category_id=category_id)
+    filter_config = {
+        'category': ('category_id', 'equals'),
+        'min_price': ('price__gte', 'numeric'),
+        'max_price': ('price__lte', 'numeric'),
+    }
 
-    if max_price and max_price != "" and max_price != "0":
-        products = products.filter(price__lte=max_price)
+    for param_key, (filter_key, filter_type) in filter_config.items():
+        value = request.GET.get(param_key, "").strip()
+        
+        if filter_type == 'numeric':
+            if value and value != "0":
+                try:
+                    numeric_value = float(value)
+                    products = products.filter(**{filter_key: numeric_value})
+                except (ValueError, TypeError):
+                    pass
+        elif filter_type == 'equals':
+            if value:
+                products = products.filter(**{filter_key: value})
 
-    if min_price and min_price != "" and min_price != "0":
-        products = products.filter(price__gte=min_price)
-
+    available_only = request.GET.get("available", "")
     if available_only in ["True", True, "on", 1, "true"]:
         products = products.filter(available=True)
 
+    search_query = request.GET.get("search", "").strip()
     if search_query:
-        search_lower = search_query.lower().strip()
-        if search_lower:
-            seen_ids = set()
-            filtered_product_ids = []
+        search_lower = search_query.lower()
+        seen_ids = set()
+        filtered_product_ids = []
 
-            for product in products:
-                if product.id in seen_ids:
-                    continue
+        for product in products:
+            if product.id in seen_ids:
+                continue
 
-                product_name_lower = product.name.lower() if product.name else ""
-                category_name_lower = (
-                    product.category.name.lower()
-                    if product.category and product.category.name
-                    else ""
-                )
+            product_name_lower = product.name.lower() if product.name else ""
+            category_name_lower = (
+                product.category.name.lower()
+                if product.category and product.category.name
+                else ""
+            )
 
-                if (
-                    search_lower in product_name_lower
-                    or search_lower in category_name_lower
-                ):
-                    filtered_product_ids.append(product.id)
-                    seen_ids.add(product.id)
+            if (
+                search_lower in product_name_lower
+                or search_lower in category_name_lower
+            ):
+                filtered_product_ids.append(product.id)
+                seen_ids.add(product.id)
 
-            if filtered_product_ids:
-                products = products.filter(id__in=filtered_product_ids).distinct()
-            else:
-                products = products.none()
+        if filtered_product_ids:
+            products = products.filter(id__in=filtered_product_ids).distinct()
+        else:
+            products = products.none()
 
     return products.distinct()
 

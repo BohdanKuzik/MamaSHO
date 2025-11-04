@@ -323,3 +323,8 @@ h3[style*="color: #f89886"] {
   transition-duration: 150ms !important;
 }
 
+/* Alpine.js x-cloak - hide elements until Alpine initializes */
+[x-cloak] {
+  display: none !important;
+}
+
