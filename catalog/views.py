@@ -116,11 +116,13 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = CreateProductForm
     template_name = "catalog/add_product.html"
     context_object_name = "add_product"
-    success_url = reverse_lazy("product_list")
 
     def test_func(self):
         user = self.request.user
         return user.is_staff or user.is_superuser
+
+    def get_success_url(self):
+        return reverse("product_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -138,7 +140,7 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             self.object.image = images[0]
             self.object.save()
 
-            ProductImage.objects.create(product=self.object, image=images[0], order=0)
+            ProductImage.objects.filter(product=self.object, order=0).delete()
 
             for order, image in enumerate(images[1:], start=1):
                 ProductImage.objects.create(
@@ -180,9 +182,6 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             if not self.object.image:
                 self.object.image = images[0]
                 self.object.save()
-                ProductImage.objects.create(
-                    product=self.object, image=images[0], order=0
-                )
                 for order, image in enumerate(images[1:], start=1):
                     ProductImage.objects.create(
                         product=self.object, image=image, order=order

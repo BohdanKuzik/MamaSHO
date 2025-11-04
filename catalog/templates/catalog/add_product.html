@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-3xl mx-auto">
-        <!-- Breadcrumb -->
         <div class="text-sm breadcrumbs mb-4">
             <ul>
                 <li><a href="{% url 'product_list' %}" class="text-primary">Products</a></li>
@@ -101,7 +100,6 @@
                         </div>
                         {% endif %}
                     {% endfor %}
-                    
                     <div class="form-control w-full"
                          x-data="{ 
                              imageFields: 1,
@@ -111,7 +109,6 @@
                         <label class="label">
                             <span class="label-text font-semibold text-base">
                                 Зображення товару
-                                <span class="text-error">*</span>
                             </span>
                         </label>
                         <template x-for="(field, index) in Array(imageFields)" :key="index">
@@ -119,7 +116,6 @@
                                 <input type="file" 
                                        :name="'images_' + index"
                                        accept="image/*"
-                                       :required="index === 0"
                                        class="file-input file-input-bordered w-full flex-1" />
                                 <button type="button" 
                                         @click="removeField()"

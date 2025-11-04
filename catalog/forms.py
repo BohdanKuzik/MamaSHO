@@ -5,7 +5,7 @@ from .models import Product, Category
 class CreateProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = "__all__"
+        exclude = ["image"]
 
 
 class UpdateProductForm(forms.ModelForm):
