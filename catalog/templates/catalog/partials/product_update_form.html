@@ -1,0 +1,164 @@
+<div class="card bg-base-100 shadow-xl h-full">
+    <div class="card-body overflow-y-auto">
+        <form method="post"
+              enctype="multipart/form-data"
+              hx-post="{% url 'edit_product' pk=product.pk %}"
+              hx-target="#update-product-form"
+              hx-swap="innerHTML">
+            {% csrf_token %}
+            <div class="grid gap-4 md:grid-cols-2">
+                {% for field in form %}
+                    {% if field.name != 'image' %}
+                    <div class="form-control w-full {% if field.name == 'description' or field.name == 'available' %}md:col-span-2{% endif %}">
+                        {% if field.name == 'available' %}
+                            <label class="label cursor-pointer justify-start gap-3">
+                                <input type="checkbox"
+                                       name="{{ field.name }}"
+                                       id="{{ field.id_for_label }}"
+                                       {% if field.value %}checked{% endif %}
+                                       class="checkbox checkbox-primary" />
+                                <span class="label-text font-semibold">{{ field.label }}</span>
+                            </label>
+                            {% if field.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ field.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            {% if field.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ field.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        {% else %}
+                            <label class="label" for="{{ field.id_for_label }}">
+                                <span class="label-text font-semibold">{{ field.label }}</span>
+                            </label>
+                            {% if field.field.widget.input_type == 'file' %}
+                                <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="file-input file-input-bordered w-full" />
+                            {% elif field.field.widget.input_type == 'textarea' %}
+                                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="textarea textarea-bordered w-full h-24">{{ field.value|default:'' }}</textarea>
+                            {% elif field.field.widget.input_type == 'select' %}
+                                {{ field }}
+                            {% else %}
+                                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" value="{{ field.value|default:'' }}" id="{{ field.id_for_label }}" class="input input-bordered w-full" />
+                            {% endif %}
+                            {% if field.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ field.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            {% if field.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ field.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <div id="current-images-list" class="md:col-span-2">
+                    {% if product.image or product.images.all %}
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text font-semibold">Поточні зображення</span>
+                            </label>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                                {% if product.image %}
+                                    <div class="relative group">
+                                        <img src="{{ product.image.url }}" alt="Main image" class="w-full h-24 object-cover rounded-lg border-2" style="border-color: #f89886;">
+                                        <span class="absolute top-1 right-1 bg-primary text-primary-content rounded-full px-2 py-1 text-xs font-bold">Головне</span>
+                                        <button type="button"
+                                                class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
+                                                hx-post="{% url 'delete_main_product_image' product_id=product.pk %}"
+                                                hx-target="#current-images-list"
+                                                hx-swap="innerHTML"
+                                                hx-confirm="Ви впевнені, що хочете видалити головне зображення?"
+                                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                                onclick="event.stopPropagation();">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                {% endif %}
+                                {% for img in product.images.all %}
+                                    <div class="relative group">
+                                        <img src="{{ img.image.url }}" alt="Image {{ img.id }}" class="w-full h-24 object-cover rounded-lg">
+                                        <span class="absolute top-1 right-1 bg-base-100 rounded-full p-1 text-xs">#{{ img.order|add:1 }}</span>
+                                        <button type="button"
+                                                class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
+                                                hx-post="{% url 'delete_product_image' product_id=product.pk image_id=img.pk %}"
+                                                hx-target="#current-images-list"
+                                                hx-swap="innerHTML"
+                                                hx-confirm="Ви впевнені, що хочете видалити це зображення?"
+                                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                                onclick="event.stopPropagation();">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-control w-full md:col-span-2"
+                     x-data="{
+                         imageFields: 1,
+                         addField() { this.imageFields++; },
+                         removeField() { if (this.imageFields > 1) this.imageFields--; }
+                     }">
+                    <label class="label">
+                        <span class="label-text font-semibold">Додати нові зображення</span>
+                    </label>
+                    <template x-for="(field, index) in Array(imageFields)" :key="index">
+                        <div class="flex gap-2 mb-2">
+                            <input type="file"
+                                   :name="'images_' + index"
+                                   accept="image/*"
+                                   class="file-input file-input-bordered w-full flex-1" />
+                            <button type="button"
+                                    @click="removeField()"
+                                    x-show="imageFields > 1 && index === imageFields - 1"
+                                    class="btn btn-error btn-square">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+                    <button type="button"
+                            @click="addField()"
+                            class="btn btn-primary btn-sm gap-2 mt-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Додати ще одне зображення
+                    </button>
+                    <label class="label">
+                        <span class="label-text-alt">Натисніть "+" щоб додати більше полів для завантаження (Макс. 5MB кожне)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="card-actions justify-between items-center mt-6">
+                <a href="{% url 'delete_product' pk=product.pk %}" class="btn btn-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Видалити
+                </a>
+                <div class="flex items-center space-x-2">
+                    <a href="{% url 'product_detail' pk=product.pk %}" class="btn btn-outline">Скасувати</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Зберегти зміни
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+

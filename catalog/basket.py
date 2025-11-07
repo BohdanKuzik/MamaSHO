@@ -1,57 +1,62 @@
 from decimal import Decimal
-from django.conf import settings
-from catalog.models import Product
+
+from django.db.models import Sum
+
+from catalog.models import Basket, BasketItem
 
 
-class Basket:
+class BasketView:
     def __init__(self, request):
-        self.session = request.session
-        basket = self.session.get(settings.BASKET_SESSION_ID)
-        if not basket:
-            basket = self.session[settings.BASKET_SESSION_ID] = {}
-        self.basket = basket
+        if not request.user.is_authenticated:
+            raise ValueError("Кошик у БД доступний тільки для авторизованих користувачів")
+        basket_obj, _ = Basket.objects.get_or_create(user=request.user)
+        self.basket = basket_obj
 
     def add(self, product, quantity=1, update_quantity=False):
-        product_id = str(product.id)
-        if product_id not in self.basket:
-            self.basket[product_id] = {"quantity": 0, "price": str(product.price)}
+        item, created = BasketItem.objects.get_or_create(
+            basket=self.basket,
+            product=product,
+            defaults={"quantity": 0}
+        )
         if update_quantity:
-            self.basket[product_id]["quantity"] = quantity
+            item.quantity = quantity
         else:
-            self.basket[product_id]["quantity"] += quantity
-        self.save()
+            item.quantity += quantity
+
+        if item.quantity <= 0:
+            item.delete()
+            return
+
+        if item.quantity > product.stock:
+            item.quantity = product.stock
+
+        item.save()
 
     def remove(self, product):
-        product_id = str(product.id)
-        if product_id in self.basket:
-            del self.basket[product_id]
-            self.save()
+        BasketItem.objects.filter(basket=self.basket, product=product).delete()
 
     def __iter__(self):
-        product_ids = self.basket.keys()
-        products = Product.objects.filter(id__in=product_ids)
-        basket = self.basket.copy()
-
-        for product in products:
-            product_id = str(product.id)
-            if product_id in basket:
-                item = basket[product_id].copy()
-                item["product"] = product
-                item["price"] = Decimal(item["price"])
-                item["total_price"] = item["price"] * item["quantity"]
-                yield item
+        items = self.basket.items.select_related("product").all()
+        for item in items:
+            yield {
+                "product": item.product,
+                "price": item.product.price,
+                "quantity": item.quantity,
+                "total_price": item.product.price * item.quantity,
+            }
 
     def __len__(self):
-        return sum(item["quantity"] for item in self.basket.values())
+        total_quantity = self.basket.items.aggregate(total=Sum("quantity"))
+        return total_quantity["total"] or 0
 
     def get_total_price(self):
         return sum(
-            Decimal(item["price"]) * item["quantity"] for item in self.basket.values()
+            (
+                item.product.price * item.quantity
+                for item in self.basket.items.select_related("product")
+            ),
+            Decimal("0.00"),
         )
 
     def clear(self):
-        del self.session[settings.BASKET_SESSION_ID]
-        self.save()
-
-    def save(self):
-        self.session.modified = True
+        self.basket.items.all().delete()

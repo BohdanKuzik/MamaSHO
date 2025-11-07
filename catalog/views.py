@@ -1,3 +1,5 @@
+import json
+
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
@@ -150,7 +152,37 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                 ProductImage.objects.create(
                     product=self.object, image=image, order=order
                 )
+        if self.request.headers.get("HX-Request") == "true":
+            form_instance = self.get_form_class()()
+            context = self.get_context_data(form=form_instance)
+            context["product"] = self.object
+            hx_response = render(
+                self.request,
+                "catalog/partials/add_product_form.html",
+                context,
+                status=200,
+            )
+            hx_response["HX-Trigger"] = json.dumps(
+                {
+                    "show-toast": {
+                        "message": f'Товар "{self.object.name}" успішно створено!',
+                        "type": "success",
+                    }
+                }
+            )
+            return hx_response
         return response
+
+    def form_invalid(self, form):
+        if self.request.headers.get("HX-Request") == "true":
+            context = self.get_context_data(form=form)
+            return render(
+                self.request,
+                "catalog/partials/add_product_form.html",
+                context,
+                status=200,
+            )
+        return super().form_invalid(form)
 
 
 class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -195,7 +227,36 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                     ProductImage.objects.create(
                         product=self.object, image=image, order=order
                     )
+        if self.request.headers.get("HX-Request") == "true":
+            refreshed_form = self.get_form_class()(instance=self.object)
+            context = self.get_context_data(form=refreshed_form)
+            hx_response = render(
+                self.request,
+                "catalog/partials/product_update_form.html",
+                context,
+                status=200,
+            )
+            hx_response["HX-Trigger"] = json.dumps(
+                {
+                    "show-toast": {
+                        "message": f'Зміни товару "{self.object.name}" збережено!',
+                        "type": "success",
+                    }
+                }
+            )
+            return hx_response
         return response
+
+    def form_invalid(self, form):
+        if self.request.headers.get("HX-Request") == "true":
+            context = self.get_context_data(form=form)
+            return render(
+                self.request,
+                "catalog/partials/product_update_form.html",
+                context,
+                status=200,
+            )
+        return super().form_invalid(form)
 
 
 class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):

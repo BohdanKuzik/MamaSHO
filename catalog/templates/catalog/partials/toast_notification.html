@@ -22,6 +22,13 @@
             showToast = true;
             setTimeout(() => { showToast = false; }, 3000);
          "
+        @show-toast.window="
+            const payload = $event.detail?.value ?? $event.detail ?? {};
+            toastMessage = payload.message || 'Операція виконана успішно!';
+            toastType = payload.type || 'success';
+            showToast = true;
+            setTimeout(() => { showToast = false; }, 3000);
+         "
          class="fixed top-20 right-4 z-50 pointer-events-none">
         <div x-show="showToast"
              x-cloak
@@ -31,18 +38,23 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-x-0"
              x-transition:leave-end="opacity-0 translate-x-full"
-             class="alert alert-success shadow-lg max-w-sm pointer-events-auto"
-             style="display: none; background-color: #4fc0b5; border-color: #4fc0b5; color: white;">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24" style="stroke: white;">
+             class="alert shadow-lg max-w-sm pointer-events-auto"
+             :class="{
+                 'alert-success': toastType === 'success',
+                 'alert-error': toastType === 'error',
+                 'alert-info': toastType === 'info'
+             }"
+             style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div class="flex-1 flex items-center justify-between gap-3">
-                <span x-text="toastMessage" style="color: white;">Товар успішно додано до кошика!</span>
+                <span x-text="toastMessage">Товар успішно додано до кошика!</span>
                 <a href="{% url 'basket_detail' %}" 
                    class="btn btn-sm btn-circle hover:scale-110 transition-transform duration-200"
-                   style="background-color: rgba(255, 255, 255, 0.2); border-color: white; color: white; min-width: 2.5rem; height: 2.5rem;"
+                   style="background-color: rgba(255, 255, 255, 0.2); border-color: currentColor; color: inherit; min-width: 2.5rem; height: 2.5rem;"
                    title="Перейти до кошика">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke: white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                 </a>

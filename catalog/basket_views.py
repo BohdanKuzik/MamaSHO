@@ -1,59 +1,115 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+import logging
+
+from .basket import BasketView
 from .models import Product
-from .basket import Basket
 
 
+logger = logging.getLogger(__name__)
+
+
+@login_required
 def basket_detail(request):
-    basket = Basket(request)
+    basket = BasketView(request)
     return render(request, "catalog/basket_detail.html", {"basket": basket})
 
 
 @require_POST
+@login_required
 def basket_add(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    basket = Basket(request)
+    basket = BasketView(request)
 
     if not product.available:
-        if not request.headers.get("HX-Request"):
-            messages.error(request, "Цей товар недоступний для замовлення.")
+        logger.warning(
+            "Attempt to add unavailable product",
+            extra={"product_id": product_id, "user_id": request.user.id},
+        )
         return redirect("product_detail", pk=product_id)
 
-    quantity = int(request.POST.get("quantity", 1))
+    try:
+        quantity = int(request.POST.get("quantity", 1))
+    except (TypeError, ValueError):
+        quantity = 1
 
-    basket_quantity = basket.basket.get(str(product_id), {}).get("quantity", 0)
+    is_htmx = request.headers.get("HX-Request") == "true"
+
+    existing_item = basket.basket.items.filter(product=product).first()
+    basket_quantity = existing_item.quantity if existing_item else 0
+
     if basket_quantity + quantity > product.stock:
-        messages.warning(
-            request,
-            f"Доступно тільки {product.stock} шт. на складі. Додано {product.stock - basket_quantity} шт.",
+        allowed_to_add = max(0, product.stock - basket_quantity)
+        if allowed_to_add == 0:
+            logger.info(
+                "Basket add blocked: insufficient stock",
+                extra={
+                    "product_id": product_id,
+                    "user_id": request.user.id,
+                    "requested": quantity,
+                    "available_to_add": allowed_to_add,
+                },
+            )
+            if is_htmx:
+                return render(
+                    request,
+                    "catalog/partials/basket_count.html",
+                    {"basket": basket},
+                )
+            return redirect("product_detail", pk=product_id)
+
+        logger.info(
+            "Basket add limited by stock",
+            extra={
+                "product_id": product_id,
+                "user_id": request.user.id,
+                "requested": quantity,
+                "added": allowed_to_add,
+            },
         )
-        quantity = max(0, product.stock - basket_quantity)
+        quantity = allowed_to_add
 
     if quantity > 0:
         basket.add(product, quantity=quantity, update_quantity=False)
-        if not request.headers.get("HX-Request"):
-            messages.success(request, f'Товар "{product.name}" додано до корзини!')
+        logger.info(
+            "Product added to basket",
+            extra={
+                "product_id": product_id,
+                "user_id": request.user.id,
+                "quantity": quantity,
+            },
+        )
     else:
-        if not request.headers.get("HX-Request"):
-            messages.warning(
-                request, "Неможливо додати більше товару - недостатньо на складі."
-            )
+        logger.info(
+            "Basket add skipped: insufficient stock",
+            extra={
+                "product_id": product_id,
+                "user_id": request.user.id,
+                "basket_quantity": basket_quantity,
+            },
+        )
 
-    if request.headers.get("HX-Request") == "true":
-        messages.success(request, f'Товар "{product.name}" додано до корзини!')
+    if is_htmx:
         return render(request, "catalog/partials/basket_count.html", {"basket": basket})
 
-    # Иначе редирект обратно
     return redirect("product_detail", pk=product_id)
 
 
 @require_POST
+@login_required
 def basket_remove(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    basket = Basket(request)
+    basket = BasketView(request)
     basket.remove(product)
-    messages.success(request, f'Товар "{product.name}" видалено з корзини!')
+    logger.info(
+        "Product removed from basket",
+        extra={
+            "product_id": product_id,
+            "user_id": request.user.id,
+        },
+    )
 
     if request.headers.get("HX-Request") == "true":
         return render(
@@ -64,9 +120,10 @@ def basket_remove(request, product_id):
 
 
 @require_POST
+@login_required
 def basket_update(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    basket = Basket(request)
+    basket = BasketView(request)
 
     try:
         quantity = int(request.POST.get("quantity", 1))
@@ -74,15 +131,36 @@ def basket_update(request, product_id):
         quantity = 1
 
     if quantity > product.stock:
-        messages.warning(request, f"Доступно тільки {product.stock} шт. на складі.")
+        logger.info(
+            "Basket update limited by stock",
+            extra={
+                "product_id": product_id,
+                "user_id": request.user.id,
+                "requested": quantity,
+                "stock": product.stock,
+            },
+        )
         quantity = product.stock
 
     if quantity > 0:
         basket.add(product, quantity=quantity, update_quantity=True)
-        messages.success(request, f'Кількість товару "{product.name}" оновлено!')
+        logger.info(
+            "Basket quantity updated",
+            extra={
+                "product_id": product_id,
+                "user_id": request.user.id,
+                "quantity": quantity,
+            },
+        )
     else:
         basket.remove(product)
-        messages.success(request, f'Товар "{product.name}" видалено з корзини!')
+        logger.info(
+            "Product removed from basket due to zero quantity",
+            extra={
+                "product_id": product_id,
+                "user_id": request.user.id,
+            },
+        )
 
     if request.headers.get("HX-Request") == "true":
         return render(
@@ -93,16 +171,15 @@ def basket_update(request, product_id):
 
 
 @require_POST
+@login_required
 def basket_clear(request):
-    basket = Basket(request)
+    basket = BasketView(request)
     basket.clear()
+    logger.info("Basket cleared", extra={"user_id": request.user.id})
 
     if request.headers.get("HX-Request") == "true":
         return render(
             request, "catalog/partials/basket_content.html", {"basket": basket}
         )
-
-    if not request.headers.get("HX-Request"):
-        messages.success(request, "Корзину очищено!")
 
     return redirect("basket_detail")

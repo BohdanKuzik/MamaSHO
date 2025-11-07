@@ -1,5 +1,7 @@
-from .basket import Basket
+from .basket import BasketView
 
 
 def basket(request):
-    return {"basket": Basket(request)}
+    if request.user.is_authenticated:
+        return {"basket": BasketView(request)}
+    return {"basket": None}
