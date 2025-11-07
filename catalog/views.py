@@ -162,7 +162,7 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                 context,
                 status=200,
             )
-            hx_response["HX-Trigger"] = json.dumps(
+            hx_response["HX-Trigger-After-Settle"] = json.dumps(
                 {
                     "show-toast": {
                         "message": f'Товар "{self.object.name}" успішно створено!',
@@ -236,7 +236,7 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 context,
                 status=200,
             )
-            hx_response["HX-Trigger"] = json.dumps(
+            hx_response["HX-Trigger-After-Settle"] = json.dumps(
                 {
                     "show-toast": {
                         "message": f'Зміни товару "{self.object.name}" збережено!',

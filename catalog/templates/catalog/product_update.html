@@ -2,9 +2,9 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-4 h-screen overflow-hidden flex flex-col">
-    <div class="max-w-6xl mx-auto flex-1 w-full flex flex-col h-full">
-        <h2 class="text-2xl sm:text-3xl font-bold text-base-content mb-6 break-words" style="word-break: break-word; overflow-wrap: anywhere;">Редагувати товар: {{ product.name }}</h2>
-        <div id="update-product-form">
+    <div class="max-w-6xl mx-auto flex-1 w-full flex flex-col h-full overflow-hidden">
+        <h2 class="text-2xl sm:text-3xl font-bold text-base-content mb-4 flex-shrink-0 break-words" style="word-break: break-word; overflow-wrap: anywhere;">Редагувати товар: {{ product.name }}</h2>
+        <div id="update-product-form" class="flex-1 overflow-hidden">
             {% include 'catalog/partials/product_update_form.html' %}
         </div>
     </div>

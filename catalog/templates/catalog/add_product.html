@@ -2,21 +2,21 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-4 h-screen overflow-hidden flex flex-col">
-    <div class="max-w-6xl mx-auto flex-1 w-full flex flex-col h-full">
-        <div class="text-sm breadcrumbs mb-4">
+    <div class="max-w-6xl mx-auto flex-1 w-full flex flex-col h-full overflow-hidden">
+        <div class="text-sm breadcrumbs mb-4 flex-shrink-0">
             <ul>
                 <li><a href="{% url 'product_list' %}" class="text-primary">Products</a></li>
                 <li>Add New Product</li>
             </ul>
         </div>
-        <div class="mb-6">
+        <div class="mb-4 flex-shrink-0">
             <h2 class="text-3xl md:text-4xl font-bold text-base-content mb-2">Додати новий товар</h2>
             <p class="text-base-content/70">Заповніть деталі нижче, щоб додати новий товар до вашого каталогу</p>
         </div>
-        <div id="add-product-form">
+        <div id="add-product-form" class="flex-1 overflow-hidden">
             {% include 'catalog/partials/add_product_form.html' %}
         </div>
-        <div class="alert alert-info shadow-lg mt-6">
+        <div class="alert alert-info shadow-lg mt-4 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
