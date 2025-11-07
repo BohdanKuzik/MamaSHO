@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Category, Product, Customer, Order, OrderItem
+
+from .models import Category, Customer, Order, OrderItem, Product
 
 
 @admin.register(Category)
@@ -21,17 +22,17 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ("get_first_name", "get_last_name", "get_email", "phone")
     search_fields = ("user__first_name", "user__last_name", "user__email")
 
-    def get_first_name(self, obj):
+    def get_first_name(self: "CustomerAdmin", obj: Customer) -> str:
         return obj.user.first_name
 
     get_first_name.short_description = "First Name"
 
-    def get_last_name(self, obj):
+    def get_last_name(self: "CustomerAdmin", obj: Customer) -> str:
         return obj.user.last_name
 
     get_last_name.short_description = "Last Name"
 
-    def get_email(self, obj):
+    def get_email(self: "CustomerAdmin", obj: Customer) -> str:
         return obj.user.email
 
     get_email.short_description = "Email"

@@ -1,44 +1,52 @@
+from __future__ import annotations
+
 import json
 
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy, reverse
-from django.views.generic import (
-    ListView,
-    DetailView,
-    CreateView,
-    UpdateView,
-    DeleteView,
-)
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from typing import Dict, Iterable, Optional
+
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.paginator import Paginator
 from django.db import models
+from django.db.models import QuerySet
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
-from catalog.models import Product, Category, ProductImage
 from catalog.forms import CreateProductForm, UpdateProductForm
+from catalog.models import Category, Product, ProductImage
 
 
-def apply_product_filters(products, request):
+def apply_product_filters(
+    products: QuerySet[Product], request: HttpRequest
+) -> QuerySet[Product]:
     products = products.distinct()
 
     filter_config = {
-        'category': ('category_id', 'equals'),
-        'min_price': ('price__gte', 'numeric'),
-        'max_price': ('price__lte', 'numeric'),
+        "category": ("category_id", "equals"),
+        "min_price": ("price__gte", "numeric"),
+        "max_price": ("price__lte", "numeric"),
     }
 
     for param_key, (filter_key, filter_type) in filter_config.items():
         value = request.GET.get(param_key, "").strip()
-        
-        if filter_type == 'numeric':
+
+        if filter_type == "numeric":
             if value and value != "0":
                 try:
                     numeric_value = float(value)
                     products = products.filter(**{filter_key: numeric_value})
                 except (ValueError, TypeError):
                     pass
-        elif filter_type == 'equals':
+        elif filter_type == "equals":
             if value:
                 products = products.filter(**{filter_key: value})
 
@@ -84,18 +92,23 @@ class ProductListView(ListView):
     context_object_name = "products"
     paginate_by = 15
 
-    def get_queryset(self):
+    def get_queryset(self: "ProductListView") -> QuerySet[Product]:
         products = Product.objects.all()
         return apply_product_filters(products, self.request)
 
-    def get_context_data(self, *, object_list=None, **kwargs):
+    def get_context_data(
+        self: "ProductListView",
+        *,
+        object_list: Optional[Iterable[Product]] = None,
+        **kwargs: object,
+    ) -> Dict[str, object]:
         context = super().get_context_data(object_list=object_list, **kwargs)
         context["amount"] = self.model.objects.count()
         context["categories"] = Category.objects.all()
         return context
 
 
-def product_filter_view(request):
+def product_filter_view(request: HttpRequest) -> Optional[HttpResponse]:
     is_htmx = request.headers.get("HX-Request") == "true"
     if not is_htmx:
         return None
@@ -123,14 +136,14 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     template_name = "catalog/add_product.html"
     context_object_name = "add_product"
 
-    def test_func(self):
+    def test_func(self: "ProductCreateView") -> bool:
         user = self.request.user
         return user.is_staff or user.is_superuser
 
-    def get_success_url(self):
+    def get_success_url(self: "ProductCreateView") -> str:
         return reverse("product_detail", kwargs={"pk": self.object.pk})
 
-    def form_valid(self, form):
+    def form_valid(self: "ProductCreateView", form: CreateProductForm) -> HttpResponse:
         response = super().form_valid(form)
         images = []
         index = 0
@@ -173,7 +186,9 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             return hx_response
         return response
 
-    def form_invalid(self, form):
+    def form_invalid(
+        self: "ProductCreateView", form: CreateProductForm
+    ) -> HttpResponse:
         if self.request.headers.get("HX-Request") == "true":
             context = self.get_context_data(form=form)
             return render(
@@ -190,14 +205,14 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = UpdateProductForm
     template_name = "catalog/product_update.html"
 
-    def test_func(self):
+    def test_func(self: "ProductUpdateView") -> bool:
         user = self.request.user
         return user.is_staff or user.is_superuser
 
-    def get_success_url(self):
+    def get_success_url(self: "ProductUpdateView") -> str:
         return reverse("product_detail", kwargs={"pk": self.object.pk})
 
-    def form_valid(self, form):
+    def form_valid(self: "ProductUpdateView", form: UpdateProductForm) -> HttpResponse:
         response = super().form_valid(form)
         images = []
         index = 0
@@ -247,7 +262,9 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             return hx_response
         return response
 
-    def form_invalid(self, form):
+    def form_invalid(
+        self: "ProductUpdateView", form: UpdateProductForm
+    ) -> HttpResponse:
         if self.request.headers.get("HX-Request") == "true":
             context = self.get_context_data(form=form)
             return render(
@@ -264,14 +281,14 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     template_name = "catalog/product_confirm_delete.html"
     success_url = reverse_lazy("product_list")
 
-    def test_func(self):
+    def test_func(self: "ProductDeleteView") -> bool:
         user = self.request.user
         return user.is_staff or user.is_superuser
 
 
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
-def product_delete_view(request, pk):
+def product_delete_view(request: HttpRequest, pk: int) -> Optional[HttpResponse]:
     obj = get_object_or_404(Product, pk=pk)
 
     if not request.method == "DELETE":
@@ -283,7 +300,7 @@ def product_delete_view(request, pk):
     )
 
 
-def pagination_cards_view(request):
+def pagination_cards_view(request: HttpRequest) -> HttpResponse:
     page_number = request.GET.get("page")
     product_list = Product.objects.all()
 
@@ -301,7 +318,9 @@ def pagination_cards_view(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 @require_POST
-def delete_product_image(request, product_id, image_id):
+def delete_product_image(
+    request: HttpRequest, product_id: int, image_id: int
+) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     image = get_object_or_404(ProductImage, id=image_id, product=product)
 
@@ -321,7 +340,7 @@ def delete_product_image(request, product_id, image_id):
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
 @require_POST
-def delete_main_product_image(request, product_id):
+def delete_main_product_image(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
 
     if product.image:

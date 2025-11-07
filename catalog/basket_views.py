@@ -1,8 +1,11 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from __future__ import annotations
 
 import logging
+
+from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .basket import BasketView
 from .models import Product
@@ -12,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
-def basket_detail(request):
+def basket_detail(request: HttpRequest) -> HttpResponse:
     basket = BasketView(request)
     return render(request, "catalog/basket_detail.html", {"basket": basket})
 
 
 @require_POST
 @login_required
-def basket_add(request, product_id):
+def basket_add(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     basket = BasketView(request)
 
@@ -99,7 +102,7 @@ def basket_add(request, product_id):
 
 @require_POST
 @login_required
-def basket_remove(request, product_id):
+def basket_remove(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     basket = BasketView(request)
     basket.remove(product)
@@ -121,7 +124,7 @@ def basket_remove(request, product_id):
 
 @require_POST
 @login_required
-def basket_update(request, product_id):
+def basket_update(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     basket = BasketView(request)
 
@@ -172,7 +175,7 @@ def basket_update(request, product_id):
 
 @require_POST
 @login_required
-def basket_clear(request):
+def basket_clear(request: HttpRequest) -> HttpResponse:
     basket = BasketView(request)
     basket.clear()
     logger.info("Basket cleared", extra={"user_id": request.user.id})

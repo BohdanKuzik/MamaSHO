@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("catalog", "0003_alter_product_options_productimage"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

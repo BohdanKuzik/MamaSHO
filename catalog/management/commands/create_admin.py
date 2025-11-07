@@ -1,6 +1,9 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
+from __future__ import annotations
+
 import os
+
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
 
 
 User = get_user_model()
@@ -9,7 +12,7 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Create a superuser from environment variables or defaults"
 
-    def handle(self, *args, **options):
+    def handle(self: "Command", *args: str, **options: object) -> None:
         username = os.getenv("ADMIN_USERNAME", "admin")
         email = os.getenv("ADMIN_EMAIL", "admin@example.com")
         password = os.getenv("ADMIN_PASSWORD", "admin123")
