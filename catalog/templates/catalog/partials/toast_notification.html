@@ -4,18 +4,23 @@
             toastType: 'success' 
         }"
          x-cloak
-         @htmx:after-request.window="
-            if (event.detail && event.detail.xhr) {
-                const status = event.detail.xhr.status;
-                const path = event.detail.pathInfo || event.detail.requestConfig?.path || event.detail.elt?.getAttribute('hx-post') || '';
-                if (status === 200 && path.includes('basket/add')) {
-                    toastMessage = 'Товар успішно додано до кошика!';
-                    toastType = 'success';
-                    showToast = true;
-                    setTimeout(() => { showToast = false; }, 3000);
-                }
-            }
-         "
+        @htmx:after-request.window="
+           if (event.detail && event.detail.xhr) {
+               const status = event.detail.xhr.status;
+               const pathInfo = event.detail.pathInfo;
+               const path =
+                   (typeof pathInfo === 'string' ? pathInfo : pathInfo?.requestPath) ||
+                   event.detail.requestConfig?.path ||
+                   event.detail.elt?.getAttribute('hx-post') ||
+                   '';
+               if (status === 200 && path.includes('basket/add')) {
+                   toastMessage = 'Товар успішно додано до кошика!';
+                   toastType = 'success';
+                   showToast = true;
+                   setTimeout(() => { showToast = false; }, 3000);
+               }
+           }
+        "
          @basket-updated.window="
             toastMessage = 'Товар успішно додано до кошика!';
             toastType = 'success';

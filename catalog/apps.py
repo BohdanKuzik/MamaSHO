@@ -6,4 +6,4 @@ class CatalogConfig(AppConfig):
     name = "catalog"
 
     def ready(self: "CatalogConfig") -> None:
-        pass
+        import catalog.signals  # noqa: F401
