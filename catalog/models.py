@@ -49,8 +49,8 @@ class ProductImage(models.Model):
 
 
 phone_validator = RegexValidator(
-    regex=r"^\+?1?\d{9,15}$",
-    message="Номер телефону повинен бути в форматі: '+380501234567'. До 15 цифр.",
+    regex=r"^\+380\d{9}$",
+    message="Номер телефону повинен бути в форматі: '+380501234567' (12 цифр після +).",
 )
 
 
@@ -74,15 +74,79 @@ class Order(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ("pending", "Pending"),
-            ("shipped", "Shipped"),
-            ("delivered", "Delivered"),
+            ("pending", "Очікує обробки"),
+            ("processing", "В обробці"),
+            ("shipped", "Відправлено"),
+            ("delivered", "Доставлено"),
+            ("cancelled", "Скасовано"),
         ],
         default="pending",
     )
+    payment_method = models.CharField(
+        max_length=50,
+        choices=[
+            ("cash_on_delivery", "Накладений платіж (оплата при отриманні)"),
+            ("card_online", "Онлайн оплата карткою"),
+            ("bank_transfer", "Банківський переказ"),
+        ],
+        default="cash_on_delivery",
+        verbose_name="Спосіб оплати",
+    )
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Очікує оплати"),
+            ("paid", "Оплачено"),
+            ("failed", "Помилка оплати"),
+            ("refunded", "Повернено"),
+        ],
+        default="pending",
+        verbose_name="Статус оплати",
+    )
+    paid_at = models.DateTimeField(blank=True, null=True, verbose_name="Дата оплати")
+    total_price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="Загальна сума замовлення", default=0
+    )
+    delivery_address = models.TextField(verbose_name="Адреса доставки", blank=True, null=True)
+    delivery_city = models.CharField(max_length=100, verbose_name="Місто", blank=True, null=True)
+    delivery_region = models.CharField(max_length=100, verbose_name="Область", blank=True, null=True)
+    delivery_postal_code = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Поштовий індекс"
+    )
+    delivery_phone = models.CharField(
+        max_length=20,
+        validators=[phone_validator],
+        verbose_name="Телефон для доставки",
+        blank=True,
+        null=True,
+    )
+    comment = models.TextField(blank=True, null=True, verbose_name="Коментар до замовлення")
+
+    class Meta:
+        ordering = ("-created_at",)
 
     def __str__(self: "Order") -> str:
-        return f"Order #{self.id} by {self.customer}"
+        return f"Замовлення #{self.id} від {self.customer}"
+
+    def get_total_price(self: "Order") -> Decimal:
+        return sum(
+            (item.product.price * item.quantity for item in self.items.all()),
+            Decimal("0.00"),
+        )
+
+    def can_be_cancelled(self: "Order") -> bool:
+        return self.status in ("pending", "processing")
+
+    def cancel(self: "Order") -> None:
+        if not self.can_be_cancelled():
+            raise ValueError("Замовлення не може бути скасоване в поточному статусі")
+        
+        self.status = "cancelled"
+        self.save()
+        
+        for item in self.items.all():
+            item.product.stock += item.quantity
+            item.product.save()
 
 
 class OrderItem(models.Model):
@@ -92,6 +156,10 @@ class OrderItem(models.Model):
 
     def __str__(self: "OrderItem") -> str:
         return f"{self.quantity} x {self.product.name}"
+
+    def get_total_price(self: "OrderItem") -> Decimal:
+        """Повертає загальну ціну позиції замовлення"""
+        return self.product.price * self.quantity
 
 
 class Basket(models.Model):

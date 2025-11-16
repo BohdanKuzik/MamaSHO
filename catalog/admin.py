@@ -45,11 +45,56 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("id", "customer", "created_at", "status")
-    list_filter = ("status", "created_at")
+    list_display = (
+        "id",
+        "customer",
+        "total_price",
+        "payment_method",
+        "payment_status",
+        "delivery_city",
+        "delivery_region",
+        "status",
+        "created_at",
+    )
+    list_filter = ("status", "payment_status", "payment_method", "created_at", "delivery_region")
     search_fields = (
+        "id",
         "customer__user__first_name",
         "customer__user__last_name",
         "customer__user__email",
+        "delivery_city",
+        "delivery_phone",
+    )
+    readonly_fields = ("created_at", "total_price")
+    fieldsets = (
+        (
+            "Основна інформація",
+            {
+                "fields": (
+                    "customer",
+                    "status",
+                    "total_price",
+                    "payment_method",
+                    "payment_status",
+                    "paid_at",
+                    "created_at",
+                )
+            },
+        ),
+        (
+            "Дані доставки",
+            {
+                "fields": (
+                    "delivery_region",
+                    "delivery_city",
+                    "delivery_address",
+                    "delivery_postal_code",
+                    "delivery_phone",
+                    "comment",
+                )
+            },
+        ),
     )
     inlines = [OrderItemInline]
+    list_editable = ("status",)
+    date_hierarchy = "created_at"

@@ -19,6 +19,15 @@ from .basket_views import (
     basket_update,
     basket_clear,
 )
+from .order_views import (
+    order_create,
+    order_detail,
+    order_list,
+    order_cancel,
+    order_payment,
+    order_payment_process,
+    order_payment_callback,
+)
 
 
 urlpatterns = [
@@ -49,4 +58,11 @@ urlpatterns = [
     path("basket/remove/<int:product_id>/", basket_remove, name="basket_remove"),
     path("basket/update/<int:product_id>/", basket_update, name="basket_update"),
     path("basket/clear/", basket_clear, name="basket_clear"),
+    path("order/create/", order_create, name="order_create"),
+    path("order/<int:pk>/", order_detail, name="order_detail"),
+    path("order/<int:pk>/cancel/", order_cancel, name="order_cancel"),
+    path("order/<int:pk>/payment/", order_payment, name="order_payment"),
+    path("order/<int:pk>/payment/process/", order_payment_process, name="order_payment_process"),
+    path("payment/callback/", order_payment_callback, name="order_payment_callback"),
+    path("orders/", order_list, name="order_list"),
 ]

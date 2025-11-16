@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold mb-6" style="color: #f89886;">Оформлення замовлення</h2>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Дані доставки</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-error mb-4">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">{{ form.delivery_region.label }}</span>
+                            </label>
+                            {{ form.delivery_region }}
+                            {% if form.delivery_region.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.delivery_region.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">{{ form.delivery_city.label }}</span>
+                            </label>
+                            {{ form.delivery_city }}
+                            {% if form.delivery_city.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.delivery_city.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">{{ form.delivery_address.label }}</span>
+                            </label>
+                            {{ form.delivery_address }}
+                            {% if form.delivery_address.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.delivery_address.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">{{ form.delivery_postal_code.label }}</span>
+                            </label>
+                            {{ form.delivery_postal_code }}
+                            {% if form.delivery_postal_code.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.delivery_postal_code.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">{{ form.delivery_phone.label }}</span>
+                            </label>
+                            {{ form.delivery_phone }}
+                            {% if form.delivery_phone.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.delivery_phone.errors }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.delivery_phone.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.delivery_phone.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text font-semibold">{{ form.payment_method.label }}</span>
+                            </label>
+                            <div class="space-y-2">
+                                {% for choice in form.payment_method %}
+                                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-base-200 transition-colors">
+                                        {{ choice.tag }}
+                                        <span>{{ choice.choice_label }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.payment_method.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.payment_method.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">{{ form.comment.label }}</span>
+                            </label>
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.comment.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-actions justify-end mt-4">
+                            <a href="{% url 'basket_detail' %}" class="btn btn-outline">Назад до кошика</a>
+                            <button type="submit" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Підтвердити замовлення
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Ваше замовлення</h3>
+                    {% if basket %}
+                        <div class="space-y-4 mb-4">
+                            {% for item in basket %}
+                                <div class="flex items-center gap-4 pb-4 border-b border-base-300">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" 
+                                             alt="{{ item.product.name }}" 
+                                             class="w-16 h-16 object-cover rounded-lg">
+                                    {% endif %}
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold">{{ item.product.name }}</h4>
+                                        <p class="text-sm text-base-content/70">{{ item.quantity }} шт. × {{ item.price }}₴</p>
+                                    </div>
+                                    <div class="font-bold price-golden">{{ item.total_price }}₴</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="flex justify-between items-center pt-4 border-t border-base-300">
+                            <span class="text-xl font-semibold">Всього:</span>
+                            <span class="text-2xl font-bold price-golden">{{ basket.get_total_price }}₴</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

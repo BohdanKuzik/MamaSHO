@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold mb-6" style="color: #f89886;">Мої замовлення</h2>
+        
+        {% if orders %}
+            <div class="space-y-4">
+                {% for order in orders %}
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-4 mb-2">
+                                        <h3 class="text-xl font-bold">Замовлення #{{ order.id }}</h3>
+                                        <span class="badge badge-lg 
+                                            {% if order.status == 'pending' %}badge-warning
+                                            {% elif order.status == 'processing' %}badge-info
+                                            {% elif order.status == 'shipped' %}badge-primary
+                                            {% elif order.status == 'delivered' %}badge-success
+                                            {% else %}badge-error{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="text-sm text-base-content/70 space-y-1">
+                                        <p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                                        <p>Доставка: {{ order.delivery_city }}, {{ order.delivery_region }}</p>
+                                        <p>Товарів: {{ order.items.count }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end gap-2">
+                                    <div class="text-2xl font-bold price-golden">{{ order.total_price }}₴</div>
+                                    <a href="{% url 'order_detail' pk=order.pk %}" class="btn btn-outline btn-sm">
+                                        Деталі
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body text-center py-16">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-base-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="text-2xl font-bold mb-2">У вас немає замовлень</h3>
+                    <p class="text-base-content/70 mb-6">Оформіть перше замовлення, щоб побачити його тут</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-primary">
+                        Перейти до каталогу
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+

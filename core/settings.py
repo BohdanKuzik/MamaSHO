@@ -159,3 +159,8 @@ LOGOUT_REDIRECT_URL = "product_list"
 
 # Basket settings
 BASKET_SESSION_ID = "basket"
+
+# WayForPay payment settings
+WAYFORPAY_MERCHANT_ACCOUNT = os.getenv("WAYFORPAY_MERCHANT_ACCOUNT", "")
+WAYFORPAY_MERCHANT_SECRET_KEY = os.getenv("WAYFORPAY_MERCHANT_SECRET_KEY", "")
+WAYFORPAY_SANDBOX = os.getenv("WAYFORPAY_SANDBOX", "1") == "1"  # 1 for sandbox, 0 for production

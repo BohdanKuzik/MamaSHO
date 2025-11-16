@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4" style="color: #f89886;">Оплата замовлення #{{ order.id }}</h2>
+                
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between items-center p-4 bg-base-200 rounded-lg">
+                        <span class="text-lg font-semibold">Сума до оплати:</span>
+                        <span class="text-2xl font-bold price-golden">{{ order.total_price }}₴</span>
+                    </div>
+                    
+                    {% if test_mode %}
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div>
+                            <h3 class="font-bold">Тестовий режим</h3>
+                            <div class="text-sm">Платіжна система не налаштована. Використовується тестовий режим.</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <h3 class="font-bold">Безпечна оплата через WayForPay</h3>
+                            <div class="text-sm">Підтримуються Monobank, PrivatBank та інші українські банки. Ваші платіжні дані обробляються безпечно.</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if payment_form_html %}
+                    {# Форма WayForPay буде автоматично відправлена #}
+                    <div class="mb-4">
+                        <p class="text-center mb-4">Ви будете перенаправлені на сторінку оплати WayForPay...</p>
+                        <p class="text-center text-sm text-base-content/70 mb-4">
+                            Підтримуються: Monobank, PrivatBank, та інші українські банки
+                        </p>
+                        <div class="flex justify-center">
+                            <span class="loading loading-spinner loading-lg" style="color: #f89886;"></span>
+                        </div>
+                    </div>
+                    {{ payment_form_html|safe }}
+                {% else %}
+                    {# Тестовий режим - кнопка для симуляції #}
+                    <div class="card-actions justify-between">
+                        <a href="{% url 'order_detail' pk=order.pk %}" class="btn btn-outline">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Назад до замовлення
+                        </a>
+                        <form method="post" action="{% url 'order_payment_process' pk=order.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                Сплатити {{ order.total_price }}₴ (тест)
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+                
+                <div class="divider"></div>
+                
+                <div class="text-sm text-base-content/70">
+                    <p class="mb-2"><strong>Підтримувані банки:</strong></p>
+                    <ul class="list-disc list-inside space-y-1 mb-4">
+                        <li>Monobank</li>
+                        <li>PrivatBank</li>
+                        <li>Ощадбанк</li>
+                        <li>УкрСиббанк</li>
+                        <li>Райффайзен Банк</li>
+                        <li>Та інші українські банки</li>
+                    </ul>
+                    <p class="mb-2"><strong>Безпека:</strong></p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Всі платежі обробляються через безпечну платіжну систему WayForPay</li>
+                        <li>Ваші дані картки не зберігаються на нашому сервері</li>
+                        <li>Після оплати ви автоматично повернетесь на сайт</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
