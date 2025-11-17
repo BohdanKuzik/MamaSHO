@@ -200,7 +200,9 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
     sandbox = getattr(settings, "WAYFORPAY_SANDBOX", True)
     wayforpay = WayForPay(merchant_account, merchant_secret, sandbox=sandbox)
 
-    return_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.pk}))
+    return_url = request.build_absolute_uri(
+        reverse("order_payment_process", kwargs={"pk": order.pk})
+    )
     service_url = request.build_absolute_uri(reverse("order_payment_callback"))
 
     customer = order.customer
@@ -235,6 +237,7 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET", "POST"])
 def order_payment_process(request: HttpRequest, pk: int) -> HttpResponse:

@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/htmx.org@2.0.3"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="min-h-screen"
+<body class="min-h-screen flex flex-col"
       x-data="{ loading: false }"
       @htmx:before-request.window="loading = true"
       @htmx:after-request.window="loading = false">
@@ -66,6 +66,28 @@
         {% block content %}
         {% endblock %}
     </main>
+    
+    <footer class="border-t border-base-200" style="background-color: #fdf5d8;">
+        <div class="container mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span class="text-base-content/70 text-sm sm:text-base text-center sm:text-left">
+                Залишайтесь на зв'язку з MamaSHO
+            </span>
+            <div class="flex items-center gap-3">
+                <a href="https://www.instagram.com/mamasho.shop?igsh=MWNpMnd3c3Btc3k2bg%3D%3D&utm_source=qr"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="btn btn-sm btn-outline gap-2"
+                   aria-label="MamaSHO в Instagram">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                        <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line>
+                    </svg>
+                    Instagram
+                </a>
+            </div>
+        </div>
+    </footer>
     
     <div x-show="loading"
          x-transition

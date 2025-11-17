@@ -23,6 +23,12 @@
                             {% if product.image %}{'url': '{{ product.image.url }}', 'is_main': true},{% endif %}
                             {% for img in product.images.all %}{'url': '{{ img.image.url }}', 'is_main': false},{% endfor %}
                         ].filter(img => img),
+                        isFullscreen: false,
+                        zoomLevel: 1,
+                        panX: 0,
+                        panY: 0,
+                        isDragging: false,
+                        dragStart: { x: 0, y: 0 },
                         get currentImage() {
                             return this.images[this.currentIndex] || null;
                         },
@@ -32,6 +38,7 @@
                             } else {
                                 this.currentIndex = 0;
                             }
+                            this.resetZoom();
                         },
                         prevImage() {
                             if (this.currentIndex > 0) {
@@ -39,18 +46,72 @@
                             } else {
                                 this.currentIndex = this.images.length - 1;
                             }
+                            this.resetZoom();
                         },
                         goToImage(index) {
                             this.currentIndex = index;
+                            this.resetZoom();
+                        },
+                        openFullscreen() {
+                            this.isFullscreen = true;
+                            document.body.style.overflow = 'hidden';
+                            this.resetZoom();
+                        },
+                        closeFullscreen() {
+                            this.isFullscreen = false;
+                            document.body.style.overflow = '';
+                            this.resetZoom();
+                        },
+                        zoomIn() {
+                            this.zoomLevel = Math.min(this.zoomLevel + 0.25, 3);
+                        },
+                        zoomOut() {
+                            this.zoomLevel = Math.max(this.zoomLevel - 0.25, 0.5);
+                        },
+                        resetZoom() {
+                            this.zoomLevel = 1;
+                            this.panX = 0;
+                            this.panY = 0;
+                        },
+                        startDrag(event) {
+                            if (this.zoomLevel > 1) {
+                                this.isDragging = true;
+                                this.dragStart.x = event.clientX - this.panX;
+                                this.dragStart.y = event.clientY - this.panY;
+                            }
+                        },
+                        onDrag(event) {
+                            if (this.isDragging && this.zoomLevel > 1) {
+                                this.panX = event.clientX - this.dragStart.x;
+                                this.panY = event.clientY - this.dragStart.y;
+                            }
+                        },
+                        endDrag() {
+                            this.isDragging = false;
+                        },
+                        handleWheel(event) {
+                            event.preventDefault();
+                            const delta = event.deltaY > 0 ? -0.1 : 0.1;
+                            this.zoomLevel = Math.max(0.5, Math.min(3, this.zoomLevel + delta));
+                            if (this.zoomLevel === 1) {
+                                this.resetZoom();
+                            }
                         }
-                    }">
+                    }"
+                    @keydown.escape="closeFullscreen()"
+                    @keydown.arrow-left="if(isFullscreen) prevImage()"
+                    @keydown.arrow-right="if(isFullscreen) nextImage()"
+                    @mousemove="onDrag($event)"
+                    @mouseup="endDrag()"
+                    @mouseleave="endDrag()">
                         {% if product.image or product.images.all %}
                             <div class="relative">
                                 <figure class="rounded-lg overflow-hidden bg-base-200 relative">
                                     <img x-show="currentImage" 
                                          :src="currentImage?.url" 
                                          alt="{{ product.name }}" 
-                                         class="w-full h-auto object-cover max-h-96"
+                                         class="w-full h-auto object-cover max-h-96 cursor-pointer hover:opacity-90 transition-opacity"
+                                         @click="openFullscreen()"
                                          x-transition:enter="transition ease-out duration-300"
                                          x-transition:enter-start="opacity-0"
                                          x-transition:enter-end="opacity-100">
@@ -99,6 +160,94 @@
                                     </div>
                                 </template>
                             </div>
+                            <div x-show="isFullscreen"
+                                 x-cloak
+                                 @click.self="closeFullscreen()"
+                                 class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                                 x-transition:enter="transition ease-out duration-300"
+                                 x-transition:enter-start="opacity-0"
+                                 x-transition:enter-end="opacity-100"
+                                 x-transition:leave="transition ease-in duration-200"
+                                 x-transition:leave-start="opacity-100"
+                                 x-transition:leave-end="opacity-0">
+                                <div class="relative w-full h-full flex items-center justify-center p-4">
+                                    <button @click="closeFullscreen()"
+                                            class="absolute top-4 right-4 z-10 btn btn-circle btn-sm bg-white/20 hover:bg-white/30 text-white border-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                    <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                                        <button @click="zoomIn()" 
+                                                class="btn btn-circle btn-sm bg-white/20 hover:bg-white/30 text-white border-none"
+                                                :disabled="zoomLevel >= 3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                        </button>
+                                        <button @click="zoomOut()" 
+                                                class="btn btn-circle btn-sm bg-white/20 hover:bg-white/30 text-white border-none"
+                                                :disabled="zoomLevel <= 0.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                            </svg>
+                                        </button>
+                                        <button @click="resetZoom()" 
+                                                class="btn btn-circle btn-sm bg-white/20 hover:bg-white/30 text-white border-none"
+                                                x-show="zoomLevel !== 1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <template x-if="images.length > 1">
+                                        <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white/20 px-4 py-2 rounded-full text-white text-sm font-semibold">
+                                            <span x-text="currentIndex + 1"></span> / <span x-text="images.length"></span>
+                                        </div>
+                                    </template>
+                                    <div class="relative w-full h-full flex items-center justify-center overflow-hidden"
+                                         @mousedown="startDrag($event)"
+                                         @wheel.prevent="handleWheel($event)">
+                                        <img x-show="currentImage"
+                                             :src="currentImage?.url"
+                                             alt="{{ product.name }}"
+                                             class="max-w-full max-h-full object-contain select-none"
+                                             :style="`transform: scale(${zoomLevel}) translate(${panX}px, ${panY}px); transition: ${isDragging ? 'none' : 'transform 0.2s ease-out'}; cursor: ${zoomLevel > 1 ? 'grab' : 'default'};`"
+                                             :class="{'cursor-grab': zoomLevel > 1 && !isDragging, 'cursor-grabbing': isDragging}"
+                                             x-transition:enter="transition ease-out duration-300"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100">
+                                    </div>
+                                    <template x-if="images.length > 1">
+                                        <div>
+                                            <button @click="prevImage()" 
+                                                    class="absolute left-4 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-white/20 hover:bg-white/30 text-white border-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                            </button>
+                                            <button @click="nextImage()" 
+                                                    class="absolute right-4 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-white/20 hover:bg-white/30 text-white border-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template x-if="images.length > 1">
+                                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 max-w-full overflow-x-auto px-4 py-2 bg-black/30 rounded-lg backdrop-blur-sm">
+                                            <template x-for="(image, index) in images" :key="index">
+                                                <button @click="goToImage(index)"
+                                                        :class="{'ring-2 ring-white': currentIndex === index}"
+                                                        class="flex-shrink-0 w-16 h-16 rounded overflow-hidden border-2 transition-all hover:opacity-80"
+                                                        :style="currentIndex === index ? 'border-color: white;' : 'border-color: transparent;'">
+                                                    <img :src="image.url" :alt="'{{ product.name }} - ' + (index + 1)" class="w-full h-full object-cover">
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         {% else %}
                             <div class="bg-base-200 rounded-lg flex items-center justify-center h-64">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-base-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,6 +273,14 @@
                         </div>
                     </div>
                 </div>
+                {% if product.description %}
+                <div class="mt-6 pt-6 border-t border-base-300">
+                    <h3 class="text-xl font-bold mb-4 text-base-content">Опис товару</h3>
+                    <div class="prose prose-sm max-w-none text-base-content">
+                        <p class="whitespace-pre-line leading-relaxed">{{ product.description }}</p>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="card-actions justify-between mt-6">
                     <a href="{% url 'product_list' %}" class="btn btn-outline">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

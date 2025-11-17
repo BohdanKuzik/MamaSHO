@@ -3,23 +3,10 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
             <h2 class="text-3xl font-bold" style="color: #f89886;">Замовлення #{{ order.id }}</h2>
-            <div class="flex gap-2">
-                {% if order.can_be_cancelled %}
-                    <form method="post" action="{% url 'order_cancel' pk=order.pk %}" class="inline">
-                        {% csrf_token %}
-                        <button type="submit" 
-                                class="btn btn-error btn-outline"
-                                onclick="return confirm('Ви впевнені, що хочете скасувати це замовлення?');">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Скасувати замовлення
-                        </button>
-                    </form>
-                {% endif %}
-                <a href="{% url 'order_list' %}" class="btn btn-outline">
+            <div class="flex flex-wrap gap-3 justify-start sm:justify-end sm:ml-6">
+                <a href="{% url 'order_list' %}" class="btn btn-outline w-full sm:w-auto text-sm sm:text-base whitespace-normal leading-tight px-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -66,8 +53,8 @@
                         {% endif %}
                         {% if order.payment_method == 'card_online' and order.payment_status == 'pending' %}
                         <div class="mt-4 pt-4 border-t border-base-300">
-                            <a href="{% url 'order_payment' pk=order.pk %}" class="btn btn-primary w-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <a href="{% url 'order_payment' pk=order.pk %}" class="btn btn-outline border-info text-info hover:bg-info hover:text-white w-full gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
                                 Сплатити замовлення
@@ -176,6 +163,33 @@
                 </div>
             </div>
         </div>
+        {% if order.can_be_cancelled %}
+        <div class="mt-8 mb-6">
+            <div class="card bg-base-100 shadow-xl border border-error/20">
+                <div class="card-body">
+                    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-error mb-2">Потрібно скасувати?</h3>
+                            <p class="text-base-content/70 text-sm sm:text-base">Ви все ще можете скасувати це замовлення, поки воно не перейшло в обробку.</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <form method="post" action="{% url 'order_cancel' pk=order.pk %}" class="w-full sm:w-auto">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="btn btn-error btn-outline w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-6 py-3 text-base font-medium"
+                                        onclick="return confirm('Ви впевнені, що хочете скасувати це замовлення?');">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span class="whitespace-nowrap">Скасувати замовлення</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
