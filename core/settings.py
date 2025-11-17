@@ -163,7 +163,14 @@ BASKET_SESSION_ID = "basket"
 # WayForPay payment settings
 WAYFORPAY_MERCHANT_ACCOUNT = os.getenv("WAYFORPAY_MERCHANT_ACCOUNT", "")
 WAYFORPAY_MERCHANT_SECRET_KEY = os.getenv("WAYFORPAY_MERCHANT_SECRET_KEY", "")
-WAYFORPAY_SANDBOX = os.getenv("WAYFORPAY_SANDBOX", "1") == "1"  # 1 for sandbox, 0 for production
+# If credentials are set, default to production mode (sandbox=False)
+# Set WAYFORPAY_SANDBOX=1 in .env to use sandbox mode for testing
+_sandbox_env = os.getenv("WAYFORPAY_SANDBOX", "")
+if _sandbox_env:
+    WAYFORPAY_SANDBOX = _sandbox_env == "1"
+else:
+    # If not explicitly set, use production mode if credentials are configured
+    WAYFORPAY_SANDBOX = not (WAYFORPAY_MERCHANT_ACCOUNT and WAYFORPAY_MERCHANT_SECRET_KEY)
 
 # Email settings
 # Use SMTP if EMAIL_HOST_USER is set, otherwise use console backend for development

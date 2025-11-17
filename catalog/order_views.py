@@ -304,14 +304,28 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
     merchant_secret = getattr(settings, "WAYFORPAY_MERCHANT_SECRET_KEY", "")
 
     if not merchant_account or not merchant_secret:
+        logger.warning(
+            "WayForPay credentials not configured",
+            extra={"order_id": order.id}
+        )
         messages.warning(
             request,
             "Платіжна система не налаштована. Використовується тестовий режим.",
         )
         return render(request, "catalog/order_payment.html", {"order": order, "test_mode": True})
 
-    sandbox = getattr(settings, "WAYFORPAY_SANDBOX", True)
+    sandbox = getattr(settings, "WAYFORPAY_SANDBOX", False)
     wayforpay = WayForPay(merchant_account, merchant_secret, sandbox=sandbox)
+    
+    logger.info(
+        "Creating WayForPay payment",
+        extra={
+            "order_id": order.id,
+            "amount": float(order.total_price),
+            "sandbox_mode": sandbox,
+            "merchant_account": merchant_account,
+        }
+    )
 
     return_url = request.build_absolute_uri(
         reverse("order_payment_process", kwargs={"pk": order.pk})
