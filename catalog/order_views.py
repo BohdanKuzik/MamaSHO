@@ -59,11 +59,14 @@ def send_order_notification_email(order: Order) -> None:
             {"order": order}
         )
         
+        # Ensure from_email matches EMAIL_HOST_USER for Gmail authentication
+        from_email = settings.EMAIL_HOST_USER or settings.DEFAULT_FROM_EMAIL
+        
         # Send email to all recipients
         send_mail(
             subject=subject,
             message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            from_email=from_email,
             recipient_list=recipients,
             html_message=html_message,
             fail_silently=False,
