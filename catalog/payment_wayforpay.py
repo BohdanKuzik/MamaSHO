@@ -71,18 +71,16 @@ class WayForPay:
 
         order_date = int(time.time())
 
-        amount_in_cents = int(amount_float * 100)
-
         fields_for_signature = [
             self.merchant_account,
             merchant_domain,
             order_id,
             str(order_date),
-            str(amount_in_cents),
+            str(amount_float),  # Use float amount, not cents
             currency,
             product_name,
-            "1",
-            str(amount_in_cents),
+            "1",  # productCount
+            str(amount_float),  # productPrice - same as amount
         ]
 
         merchant_signature = self._generate_signature(fields_for_signature)
