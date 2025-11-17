@@ -47,6 +47,36 @@ def send_order_notification_email(order: Order) -> None:
             logger.warning("No valid email recipients configured, skipping email notification")
             return
         
+        # Check email configuration
+        email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
+        email_host_password = getattr(settings, "EMAIL_HOST_PASSWORD", "")
+        email_backend = getattr(settings, "EMAIL_BACKEND", "")
+        
+        if not email_host_user:
+            logger.error(
+                "EMAIL_HOST_USER not configured. Cannot send email.",
+                extra={"order_id": order.id}
+            )
+            return
+        
+        if not email_host_password:
+            logger.error(
+                "EMAIL_HOST_PASSWORD not configured. Cannot send email.",
+                extra={"order_id": order.id}
+            )
+            return
+        
+        logger.info(
+            "Attempting to send order notification email",
+            extra={
+                "order_id": order.id,
+                "recipients": recipients,
+                "from_email": email_host_user,
+                "email_backend": email_backend,
+                "email_host": getattr(settings, "EMAIL_HOST", ""),
+            }
+        )
+        
         subject = f"Нове замовлення #{order.id} - MamaSHO"
         
         # Render email templates
@@ -60,7 +90,7 @@ def send_order_notification_email(order: Order) -> None:
         )
         
         # Ensure from_email matches EMAIL_HOST_USER for Gmail authentication
-        from_email = settings.EMAIL_HOST_USER or settings.DEFAULT_FROM_EMAIL
+        from_email = email_host_user
         
         # Send email to all recipients
         send_mail(
@@ -73,13 +103,21 @@ def send_order_notification_email(order: Order) -> None:
         )
         
         logger.info(
-            "Order notification email sent",
+            "Order notification email sent successfully",
             extra={"order_id": order.id, "recipients": recipients}
         )
     except Exception as e:
+        error_msg = str(e)
         logger.error(
             "Failed to send order notification email",
-            extra={"order_id": order.id, "error": str(e)},
+            extra={
+                "order_id": order.id,
+                "error": error_msg,
+                "error_type": type(e).__name__,
+                "email_host_user": getattr(settings, "EMAIL_HOST_USER", "NOT_SET"),
+                "email_host": getattr(settings, "EMAIL_HOST", "NOT_SET"),
+                "email_backend": getattr(settings, "EMAIL_BACKEND", "NOT_SET"),
+            },
             exc_info=True,
         )
 
