@@ -8,9 +8,11 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods
@@ -22,6 +24,61 @@ from .payment_wayforpay import WayForPay
 
 
 logger = logging.getLogger(__name__)
+
+
+def send_order_notification_email(order: Order) -> None:
+    """Send email notification to admin about new order"""
+    try:
+        notification_email = getattr(settings, "ORDER_NOTIFICATION_EMAIL", "kuzikbv2509@gmail.com")
+        
+        if not notification_email:
+            logger.warning("ORDER_NOTIFICATION_EMAIL not configured, skipping email notification")
+            return
+        
+        # Support multiple recipients: comma-separated string or list
+        if isinstance(notification_email, str):
+            # Split by comma and strip whitespace
+            recipients = [email.strip() for email in notification_email.split(",") if email.strip()]
+        else:
+            # Already a list
+            recipients = list(notification_email)
+        
+        if not recipients:
+            logger.warning("No valid email recipients configured, skipping email notification")
+            return
+        
+        subject = f"Нове замовлення #{order.id} - MamaSHO"
+        
+        # Render email templates
+        html_message = render_to_string(
+            "catalog/emails/order_notification.html",
+            {"order": order}
+        )
+        plain_message = render_to_string(
+            "catalog/emails/order_notification.txt",
+            {"order": order}
+        )
+        
+        # Send email to all recipients
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=recipients,
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        logger.info(
+            "Order notification email sent",
+            extra={"order_id": order.id, "recipients": recipients}
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to send order notification email",
+            extra={"order_id": order.id, "error": str(e)},
+            exc_info=True,
+        )
 
 
 def get_basket_for_order(request: HttpRequest) -> BasketView | SessionBasket | None:
@@ -88,6 +145,21 @@ def order_create(request: HttpRequest) -> HttpResponse:
                         },
                     )
 
+                    # Send email notification to admin
+                    try:
+                        send_order_notification_email(order)
+                    except Exception as e:
+                        logger.error(
+                            "Failed to send order notification email",
+                            extra={"order_id": order.id, "error": str(e)},
+                            exc_info=True,
+                        )
+                        # Don't fail the order creation if email fails
+                        messages.warning(
+                            request,
+                            "Замовлення створено, але не вдалося надіслати повідомлення адміністратору.",
+                        )
+
                     messages.success(
                         request,
                         f"Замовлення #{order.id} успішно створено!",
@@ -137,7 +209,7 @@ def order_detail(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def order_list(request: HttpRequest) -> HttpResponse:
     customer, _ = Customer.objects.get_or_create(user=request.user)
-    orders = Order.objects.filter(customer=customer).select_related("customer")
+    orders = Order.objects.filter(customer=customer).select_related("customer").prefetch_related("items__product")
     return render(request, "catalog/order_list.html", {"orders": orders})
 
 

@@ -164,3 +164,24 @@ BASKET_SESSION_ID = "basket"
 WAYFORPAY_MERCHANT_ACCOUNT = os.getenv("WAYFORPAY_MERCHANT_ACCOUNT", "")
 WAYFORPAY_MERCHANT_SECRET_KEY = os.getenv("WAYFORPAY_MERCHANT_SECRET_KEY", "")
 WAYFORPAY_SANDBOX = os.getenv("WAYFORPAY_SANDBOX", "1") == "1"  # 1 for sandbox, 0 for production
+
+# Email settings
+# Use SMTP if EMAIL_HOST_USER is set, otherwise use console backend for development
+_email_backend = os.getenv("EMAIL_BACKEND")
+if not _email_backend:
+    # If EMAIL_HOST_USER is configured, use SMTP; otherwise use console
+    if os.getenv("EMAIL_HOST_USER"):
+        _email_backend = "django.core.mail.backends.smtp.EmailBackend"
+    else:
+        _email_backend = "django.core.mail.backends.console.EmailBackend"
+
+EMAIL_BACKEND = _email_backend
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@mamasho.com")
+
+# Order notification email
+ORDER_NOTIFICATION_EMAIL = os.getenv("ORDER_NOTIFICATION_EMAIL", "kuzikbv2509@gmail.com")

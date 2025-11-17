@@ -4,25 +4,25 @@
         <div class="card bg-base-100 shadow-xl mb-6">
             <div class="card-body">
                 <div class="overflow-x-auto">
-                    <table class="table w-full">
+                    <table class="table w-full table-auto">
                         <thead>
                             <tr>
-                                <th>Товар</th>
-                                <th>Ціна</th>
-                                <th>Кількість</th>
-                                <th>Сума</th>
-                                <th></th>
+                                <th class="min-w-[240px] px-6">Товар</th>
+                                <th class="min-w-[130px] px-6 whitespace-nowrap">Ціна</th>
+                                <th class="min-w-[140px] px-6 whitespace-nowrap">Кількість</th>
+                                <th class="min-w-[130px] px-6 whitespace-nowrap">Сума</th>
+                                <th class="w-20 px-6"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in basket %}
                                 <tr>
-                                    <td>
+                                    <td class="px-6 py-4">
                                         <div class="flex items-center gap-4">
                                             {% if item.product.image %}
                                                 <img src="{{ item.product.image.url }}" 
                                                      alt="{{ item.product.name }}" 
-                                                     class="w-16 h-16 object-cover rounded-lg">
+                                                     class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
                                             {% else %}
                                                 <div class="w-16 h-16 bg-base-200 rounded-lg flex items-center justify-center">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,18 +30,18 @@
                                                     </svg>
                                                 </div>
                                             {% endif %}
-                                            <div>
+                                            <div class="min-w-0 flex-1">
                                                 <a href="{% url 'product_detail' pk=item.product.pk %}" 
-                                                   class="font-semibold hover:text-primary">
+                                                   class="font-semibold hover:text-primary break-words">
                                                     {{ item.product.name }}
                                                 </a>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="font-semibold price-golden">{{ item.price }}₴</span>
                                     </td>
-                                    <td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         <form method="post" 
                                               action="{% url 'basket_update' product_id=item.product.pk %}"
                                               class="flex items-center gap-2">
@@ -60,10 +60,10 @@
                                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                                         </form>
                                     </td>
-                                    <td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="font-bold text-lg price-golden">{{ item.total_price }}₴</span>
                                     </td>
-                                    <td>
+                                    <td class="px-6 py-4">
                                         <button type="button" 
                                                 class="btn btn-error btn-sm"
                                                 style="pointer-events: auto; z-index: 10; position: relative; cursor: pointer;"
