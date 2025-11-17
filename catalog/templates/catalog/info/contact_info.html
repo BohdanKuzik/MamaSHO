@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8" style="color: #f89886;">Контактна інформація</h1>
+        
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-semibold mb-4">Інтернет-магазин MamaSHO</h2>
+                <p class="mb-6 text-lg">
+                    Ми завжди раді допомогти вам з вибором товару та відповісти на всі ваші питання.
+                </p>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-semibold mb-4">Контактні дані</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <div>
+                            <h3 class="font-semibold mb-1">Email</h3>
+                            <a href="mailto:kuzikbv2509@gmail.com" class="text-primary hover:underline">kuzikbv2509@gmail.com</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                        </svg>
+                        <div>
+                            <h3 class="font-semibold mb-1">Instagram</h3>
+                            <a href="https://www.instagram.com/mamasho.shop" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">@mamasho.shop</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-semibold mb-4">Реєстраційні дані</h2>
+                <div class="space-y-3">
+                    <div>
+                        <h3 class="font-semibold mb-1">Повна назва компанії:</h3>
+                        <p class="text-base-content/70">MamaSHO</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-1">ІПН (Ідентифікаційний податковий номер):</h3>
+                        <p class="text-base-content/70">2916705766</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-1">Юридична адреса:</h3>
+                        <p class="text-base-content/70">вул. Гоголя 287 (18000), м. Черкаси</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-1">Фактична адреса:</h3>
+                        <p class="text-base-content/70">вул. Гоголя 287 (18000), м. Черкаси</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-semibold mb-4">Режим роботи</h2>
+                <div class="space-y-2">
+                    <p><strong>Обробка замовлень:</strong> Понеділок - Субота, 9:00 - 18:00</p>
+                    <p><strong>Відповіді на запити:</strong> Протягом 24 годин у робочі дні</p>
+                    <p><strong>Вихідні:</strong> Неділя</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="text-2xl font-semibold mb-4">Як з нами зв'язатися</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold mb-2">Для замовлень та питань про товари:</h3>
+                        <p class="text-base-content/70">Напишіть нам на email або в Instagram. Ми відповімо найближчим часом.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Для повернення та обміну товару:</h3>
+                        <p class="text-base-content/70">Зверніться до нас за email з номером замовлення. Детальніше про процедуру повернення дивіться на сторінці <a href="{% url 'refund_policy' %}" class="text-primary hover:underline">Правила повернення</a>.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Для співпраці та партнерства:</h3>
+                        <p class="text-base-content/70">Надішліть запит на наш email з описом пропозиції.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

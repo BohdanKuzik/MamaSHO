@@ -28,6 +28,11 @@ from .order_views import (
     order_payment_process,
     order_payment_callback,
 )
+from .info_views import (
+    terms_and_conditions,
+    refund_policy,
+    contact_info,
+)
 
 
 urlpatterns = [
@@ -65,4 +70,7 @@ urlpatterns = [
     path("order/<int:pk>/payment/process/", order_payment_process, name="order_payment_process"),
     path("payment/callback/", order_payment_callback, name="order_payment_callback"),
     path("orders/", order_list, name="order_list"),
+    path("terms/", terms_and_conditions, name="terms_and_conditions"),
+    path("refund/", refund_policy, name="refund_policy"),
+    path("contact/", contact_info, name="contact_info"),
 ]
