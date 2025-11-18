@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата замовлення #{{ order.id }} підтверджена</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f6f6f6; }
+        .wrap { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
+        .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+        h1 { font-size: 22px; margin: 0 0 12px; color: #1f2937; }
+        h2 { font-size: 16px; margin: 24px 0 8px; color: #374151; }
+        p { color: #444; line-height: 1.5; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+        th, td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        .muted { color: #6b7280; font-size: 13px; }
+        .status { border-left: 4px solid #34d399; padding: 16px; border-radius: 6px; background: #ecfdf5; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card status">
+            <h1>Оплату за замовлення #{{ order.id }} підтверджено</h1>
+            <p>Дякуємо! Ми починаємо підготовку до відправки.</p>
+        </div>
+
+        <div class="card">
+            <h2>Деталі</h2>
+            <p>Сума: <strong>{{ order.total_price }}₴</strong></p>
+            {% if order.paid_at %}<p class="muted">Дата оплати: {{ order.paid_at|date:"d.m.Y H:i" }}</p>{% endif %}
+            <p class="muted">Поточний статус: {{ order.get_status_display }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Що далі</h2>
+            <p>Ми пакуємо замовлення та повідомимо, коли воно буде відправлене.</p>
+            <p class="muted" style="margin-top:12px;">Стежити за замовленням можна за посиланням нижче.</p>
+            <p style="margin-top:12px;">
+                <a href="{{ order_detail_url }}" style="color:#2563eb; text-decoration:none;">Відкрити замовлення</a>
+            </p>
+        </div>
+
+        <div class="muted" style="text-align:center; margin-top:24px;">
+            <p>Дата листа: {% now "d.m.Y H:i" %}</p>
+        </div>
+    </div>
+</body>
+</html>

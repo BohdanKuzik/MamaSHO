@@ -80,23 +80,16 @@ def send_order_notification_email(order: Order) -> None:
         
         subject = f"Нове замовлення #{order.id} - MamaSHO"
         
-        # Render email templates
         html_message = render_to_string(
             "catalog/emails/order_notification.html",
             {"order": order}
         )
-        plain_message = render_to_string(
-            "catalog/emails/order_notification.txt",
-            {"order": order}
-        )
         
-        # Ensure from_email matches EMAIL_HOST_USER for Gmail authentication
         from_email = email_host_user
         
-        # Send email to all recipients
         send_mail(
             subject=subject,
-            message=plain_message,
+            message="",
             from_email=from_email,
             recipient_list=recipients,
             html_message=html_message,
@@ -119,6 +112,150 @@ def send_order_notification_email(order: Order) -> None:
                 "email_host": getattr(settings, "EMAIL_HOST", "NOT_SET"),
                 "email_backend": getattr(settings, "EMAIL_BACKEND", "NOT_SET"),
             },
+            exc_info=True,
+        )
+
+
+def send_customer_order_created_email(order: Order, request: HttpRequest) -> None:
+    """Send email to customer when order is created"""
+    try:
+        if not order.email:
+            logger.warning(f"Order {order.id} has no email, skipping customer notification")
+            return
+        
+        email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
+        if not email_host_user:
+            logger.error("EMAIL_HOST_USER not configured. Cannot send email.")
+            return
+        
+        payment_url = request.build_absolute_uri(reverse("order_payment", kwargs={"pk": order.id}))
+        order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
+        
+        subject = f"Ваше замовлення #{order.id} прийнято - MamaSHO"
+        
+        html_message = render_to_string(
+            "catalog/emails/order_created.html",
+            {
+                "order": order,
+                "payment_url": payment_url,
+                "order_detail_url": order_detail_url,
+            }
+        )
+        
+        send_mail(
+            subject=subject,
+            message="",  # HTML only, no plain text
+            from_email=email_host_user,
+            recipient_list=[order.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        logger.info(
+            "Customer order created email sent successfully",
+            extra={"order_id": order.id, "email": order.email}
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to send customer order created email",
+            extra={"order_id": order.id, "error": str(e)},
+            exc_info=True,
+        )
+
+
+def send_customer_order_paid_email(order: Order, request: HttpRequest) -> None:
+    """Send email to customer when order is paid"""
+    try:
+        if not order.email:
+            logger.warning(f"Order {order.id} has no email, skipping paid notification")
+            return
+        
+        email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
+        if not email_host_user:
+            logger.error("EMAIL_HOST_USER not configured. Cannot send email.")
+            return
+        
+        order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
+        
+        subject = f"Оплата замовлення #{order.id} підтверджена - MamaSHO"
+        
+        html_message = render_to_string(
+            "catalog/emails/order_paid.html",
+            {
+                "order": order,
+                "order_detail_url": order_detail_url,
+            }
+        )
+        
+        send_mail(
+            subject=subject,
+            message="",  # HTML only, no plain text
+            from_email=email_host_user,
+            recipient_list=[order.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        logger.info(
+            "Customer order paid email sent successfully",
+            extra={"order_id": order.id, "email": order.email}
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to send customer order paid email",
+            extra={"order_id": order.id, "error": str(e)},
+            exc_info=True,
+        )
+
+
+def send_customer_order_status_changed_email(order: Order, old_status: str | None = None, request: HttpRequest | None = None) -> None:
+    """Send email to customer when order status changes"""
+    try:
+        if not order.email:
+            logger.warning(f"Order {order.id} has no email, skipping status change notification")
+            return
+        
+        email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
+        if not email_host_user:
+            logger.error("EMAIL_HOST_USER not configured. Cannot send email.")
+            return
+        
+        # Build order detail URL
+        if request:
+            order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
+        else:
+            # Fallback if no request available (e.g., from admin)
+            site_url = getattr(settings, "SITE_URL", "https://mamasho.onrender.com")
+            order_detail_url = f"{site_url}/order/{order.id}/"
+        
+        subject = f"Статус замовлення #{order.id} змінено - MamaSHO"
+        
+        html_message = render_to_string(
+            "catalog/emails/order_status_changed.html",
+            {
+                "order": order,
+                "old_status": old_status,
+                "order_detail_url": order_detail_url,
+            }
+        )
+        
+        send_mail(
+            subject=subject,
+            message="",  # HTML only, no plain text
+            from_email=email_host_user,
+            recipient_list=[order.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        logger.info(
+            "Customer order status changed email sent successfully",
+            extra={"order_id": order.id, "email": order.email, "new_status": order.status, "old_status": old_status}
+        )
+    except Exception as e:
+        logger.error(
+            "Failed to send customer order status changed email",
+            extra={"order_id": order.id, "error": str(e)},
             exc_info=True,
         )
 
@@ -200,7 +337,22 @@ def order_create(request: HttpRequest) -> HttpResponse:
                         messages.warning(
                             request,
                             "Замовлення створено, але не вдалося надіслати повідомлення адміністратору.",
-                    )
+                        )
+                    
+                    # Send email to customer with order details and payment link
+                    try:
+                        send_customer_order_created_email(order, request)
+                    except Exception as e:
+                        logger.error(
+                            "Failed to send customer order created email",
+                            extra={"order_id": order.id, "error": str(e)},
+                            exc_info=True,
+                        )
+                        # Don't fail the order creation if email fails
+                        messages.warning(
+                            request,
+                            "Замовлення створено, але не вдалося надіслати повідомлення на email.",
+                        )
 
                     messages.success(
                         request,
@@ -209,11 +361,6 @@ def order_create(request: HttpRequest) -> HttpResponse:
                     
                     if order.payment_method == "card_online":
                         return redirect("order_payment", pk=order.id)
-                    elif order.payment_method == "bank_transfer":
-                        messages.info(
-                            request,
-                            "Реквізити для банківського переказу будуть надіслані вам на email.",
-                        )
                     
                     return redirect("order_detail", pk=order.id)
 
@@ -234,6 +381,8 @@ def order_create(request: HttpRequest) -> HttpResponse:
             initial_data["delivery_phone"] = customer.phone
         if customer.address:
             initial_data["delivery_address"] = customer.address
+        if request.user.email:
+            initial_data["email"] = request.user.email
 
         form = OrderForm(initial=initial_data)
 
@@ -468,6 +617,22 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
                             "reason_code": reason_code,
                         },
                     )
+                    
+                    # Send email to customer about payment confirmation
+                    try:
+                        # Build request object for URL generation
+                        from django.test import RequestFactory
+                        factory = RequestFactory()
+                        fake_request = factory.get('/')
+                        fake_request.META['HTTP_HOST'] = request.META.get('HTTP_HOST', 'mamasho.onrender.com')
+                        fake_request.scheme = request.scheme if hasattr(request, 'scheme') else 'https'
+                        send_customer_order_paid_email(order, fake_request)
+                    except Exception as e:
+                        logger.error(
+                            "Failed to send customer order paid email",
+                            extra={"order_id": order.id, "error": str(e)},
+                            exc_info=True,
+                        )
 
                 return JsonResponse(
                     {

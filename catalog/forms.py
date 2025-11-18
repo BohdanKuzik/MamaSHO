@@ -94,6 +94,17 @@ class OrderForm(forms.ModelForm):
         ),
         help_text="Формат: +380501234567",
     )
+    email = forms.EmailField(
+        label="Email для повідомлень",
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "example@email.com",
+            }
+        ),
+        help_text="На цей email будуть надсилатися повідомлення про статус замовлення",
+    )
     comment = forms.CharField(
         label="Коментар до замовлення",
         required=False,
@@ -110,7 +121,6 @@ class OrderForm(forms.ModelForm):
         choices=[
             ("cash_on_delivery", "Накладений платіж (оплата при отриманні)"),
             ("card_online", "Онлайн оплата карткою"),
-            ("bank_transfer", "Банківський переказ"),
         ],
         widget=forms.RadioSelect(attrs={"class": "radio"}),
         initial="cash_on_delivery",
@@ -124,6 +134,7 @@ class OrderForm(forms.ModelForm):
             "delivery_address",
             "delivery_postal_code",
             "delivery_phone",
+            "email",
             "payment_method",
             "comment",
         ]

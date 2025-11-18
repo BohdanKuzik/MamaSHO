@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статус замовлення #{{ order.id }} змінено</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f6f6f6; }
+        .wrap { max-width:600px; margin:0 auto; padding:24px 16px; }
+        .card { background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:24px; margin-bottom:16px; }
+        h1 { font-size:22px; margin:0 0 12px; color:#222; }
+        h2 { font-size:16px; margin:24px 0 8px; color:#555; }
+        p { color:#444; line-height:1.5; margin:0; }
+        .badge { display:inline-block; padding:6px 14px; border-radius:999px; font-size:13px; margin-top:8px; }
+        .badge.pending { background:#fff7db; color:#854d0e; }
+        .badge.processing { background:#e0edff; color:#1d4ed8; }
+        .badge.shipped { background:#e7f5ef; color:#0f5132; }
+        .badge.delivered { background:#dcfce7; color:#166534; }
+        .badge.cancelled { background:#fde2e1; color:#b91c1c; }
+        .muted { color:#6b7280; font-size:13px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>Замовлення #{{ order.id }}</h1>
+            <p>Новий статус:</p>
+            <span class="badge {{ order.status }}">{{ order.get_status_display }}</span>
+            {% if old_status %}
+                <p class="muted" style="margin-top:12px;">Попередній статус: {{ old_status }}</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Що це означає</h2>
+            {% if order.status == "pending" %}
+                <p>Замовлення прийнято та очікує обробки.</p>
+            {% elif order.status == "processing" %}
+                <p>Ми збираємо та пакуємо ваші товари.</p>
+            {% elif order.status == "shipped" %}
+                <p>Замовлення передано службі доставки. Очікуйте повідомлення про прибуття.</p>
+            {% elif order.status == "delivered" %}
+                <p>Замовлення доставлено. Дякуємо, що обираєте MamaSHO!</p>
+            {% elif order.status == "cancelled" %}
+                <p>Замовлення скасовано. Якщо була оплата, повернення відбудеться протягом кількох днів.</p>
+            {% endif %}
+        </div>
+
+        {% if order.status == "shipped" %}
+        <div class="card">
+            <h2>Доставка</h2>
+            {% if order.delivery_address %}<p>{{ order.delivery_address }}</p>{% endif %}
+            <p class="muted">
+                {% if order.delivery_city %}{{ order.delivery_city }}, {% endif %}
+                {% if order.delivery_region %}{{ order.delivery_region }}{% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        <div class="muted" style="text-align:center; margin-top:24px;">
+            <p>Відстежуйте замовлення на сайті: <a href="{{ order_detail_url }}" style="color:#2563eb; text-decoration:none;">відкрити</a></p>
+            <p>Дата листа: {% now "d.m.Y H:i" %}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -5,187 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Нове замовлення #{{ order.id }}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background-color: #f89886;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 5px 5px 0 0;
-        }
-        .content {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border: 1px solid #ddd;
-        }
-        .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            border-left: 4px solid #f89886;
-        }
-        .section-title {
-            font-weight: bold;
-            font-size: 18px;
-            color: #f89886;
-            margin-bottom: 10px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .info-label {
-            font-weight: bold;
-            color: #666;
-        }
-        .info-value {
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f89886;
-            color: white;
-        }
-        .total {
-            font-size: 20px;
-            font-weight: bold;
-            color: #f89886;
-            text-align: right;
-            margin-top: 10px;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 12px;
-        }
-        .action-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #f89886;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f6f6f6; }
+        .wrap { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
+        .card { background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+        h1 { font-size: 22px; margin: 0 0 12px; color: #222; }
+        h2 { font-size: 16px; margin: 24px 0 8px; color: #555; }
+        p, span { color: #444; line-height: 1.5; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+        th, td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        .muted { color: #777; font-size: 13px; }
+        .total { text-align: right; font-size: 18px; font-weight: 600; margin-top: 8px; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 13px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Нове замовлення #{{ order.id }}</h1>
-        <p>Потрібно підтвердити та відправити товар</p>
-    </div>
-    
-    <div class="content">
-        <div class="section">
-            <div class="section-title">📋 Інформація про замовлення</div>
-            <div class="info-row">
-                <span class="info-label">Номер замовлення: </span>
-                <span class="info-value"><strong>#{{ order.id }}</strong></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Дата створення: </span>
-                <span class="info-value">{{ order.created_at|date:"d.m.Y H:i" }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Статус: </span>
-                <span class="info-value">{{ order.get_status_display }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Спосіб оплати: </span>
-                <span class="info-value">{{ order.get_payment_method_display }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Статус оплати: </span>
-                <span class="info-value">{{ order.get_payment_status_display }}</span>
-            </div>
-            {% if order.paid_at %}
-            <div class="info-row">
-                <span class="info-label">Дата оплати: </span>
-                <span class="info-value">{{ order.paid_at|date:"d.m.Y H:i" }}</span>
-            </div>
-            {% endif %}
+    <div class="wrap">
+        <div class="card">
+            <h1>Нове замовлення #{{ order.id }}</h1>
+            <p class="muted">Створено {{ order.created_at|date:"d.m.Y H:i" }}</p>
+            <p class="muted">Статус: <span class="badge">{{ order.get_status_display }}</span></p>
+            <p class="muted">Оплата: {{ order.get_payment_method_display }} • {{ order.get_payment_status_display }}</p>
         </div>
 
-        <div class="section">
-            <div class="section-title">👤 Інформація про клієнта</div>
-            <div class="info-row">
-                <span class="info-label">Клієнт: </span>
-                <span class="info-value">{{ order.customer.user.get_full_name|default:order.customer.user.username }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Email: </span>
-                <span class="info-value">{{ order.customer.user.email }}</span>
-            </div>
-            {% if order.customer.phone %}
-            <div class="info-row">
-                <span class="info-label">Телефон: </span>
-                <span class="info-value">{{ order.customer.phone }}</span>
-            </div>
-            {% endif %}
+        <div class="card">
+            <h2>Клієнт</h2>
+            <p>{{ order.customer.user.get_full_name|default:order.customer.user.username }}</p>
+            <p class="muted">{{ order.customer.user.email }}</p>
+            {% if order.customer.phone %}<p class="muted">{{ order.customer.phone }}</p>{% endif %}
         </div>
 
-        <div class="section">
-            <div class="section-title">🚚 Дані доставки</div>
-            {% if order.delivery_region %}
-            <div class="info-row">
-                <span class="info-label">Область: </span>
-                <span class="info-value">{{ order.delivery_region }}</span>
-            </div>
-            {% endif %}
-            {% if order.delivery_city %}
-            <div class="info-row">
-                <span class="info-label">Місто: </span>
-                <span class="info-value">{{ order.delivery_city }}</span>
-            </div>
-            {% endif %}
-            {% if order.delivery_address %}
-            <div class="info-row">
-                <span class="info-label">Адреса: </span>
-                <span class="info-value">{{ order.delivery_address }}</span>
-            </div>
-            {% endif %}
-            {% if order.delivery_postal_code %}
-            <div class="info-row">
-                <span class="info-label">Поштовий індекс: </span>
-                <span class="info-value">{{ order.delivery_postal_code }}</span>
-            </div>
-            {% endif %}
-            {% if order.delivery_phone %}
-            <div class="info-row">
-                <span class="info-label">Телефон для доставки: </span>
-                <span class="info-value">{{ order.delivery_phone }}</span>
-            </div>
-            {% endif %}
-            {% if order.comment %}
-            <div class="info-row">
-                <span class="info-label">Коментар: </span>
-                <span class="info-value">{{ order.comment }}</span>
-            </div>
-            {% endif %}
+        <div class="card">
+            <h2>Доставка</h2>
+            {% if order.delivery_address %}<p>{{ order.delivery_address }}</p>{% endif %}
+            <p class="muted">
+                {% if order.delivery_city %}{{ order.delivery_city }}, {% endif %}
+                {% if order.delivery_region %}{{ order.delivery_region }}{% endif %}
+            </p>
+            {% if order.delivery_postal_code %}<p class="muted">Індекс: {{ order.delivery_postal_code }}</p>{% endif %}
+            {% if order.delivery_phone %}<p class="muted">Телефон: {{ order.delivery_phone }}</p>{% endif %}
+            {% if order.comment %}<p class="muted">Коментар: {{ order.comment }}</p>{% endif %}
         </div>
 
-        <div class="section">
-            <div class="section-title">🛍️ Товари в замовленні</div>
+        <div class="card">
+            <h2>Товари</h2>
             <table>
                 <thead>
                     <tr>
@@ -206,20 +69,13 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <div class="total">
-                Всього: {{ order.total_price }}₴
-            </div>
+            <p class="total">Всього: {{ order.total_price }}₴</p>
         </div>
 
-        <div style="text-align: center; margin-top: 20px;">
-            <p><strong>⚠️ Потрібно підтвердити замовлення та відправити товар клієнту!</strong></p>
+        <div class="muted" style="text-align:center; margin-top:24px;">
+            <p>Перевірте замовлення та підготуйте відправку клієнту.</p>
+            <p>Дата листа: {% now "d.m.Y H:i" %}</p>
         </div>
-    </div>
-
-    <div class="footer">
-        <p>Це автоматичне повідомлення від системи MamaSHO</p>
-        <p>Дата відправки: {% now "d.m.Y H:i" %}</p>
     </div>
 </body>
 </html>
-

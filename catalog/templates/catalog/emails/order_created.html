@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваше замовлення #{{ order.id }} прийнято</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f6f6f6; }
+        .wrap { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
+        .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+        h1 { font-size: 22px; margin: 0 0 12px; color: #222; }
+        h2 { font-size: 16px; margin: 24px 0 8px; color: #555; }
+        p { color: #444; line-height: 1.5; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+        th, td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        .muted { color: #777; font-size: 13px; }
+        .total { text-align: right; font-size: 18px; font-weight: 600; margin-top: 8px; }
+        .action-button { display: inline-block; padding: 12px 20px; border-radius: 6px; background: #3b82f6; color: #fff; text-decoration: none; font-weight: 600; }
+        .info-panel { border-radius: 6px; border: 1px solid #e5e5e5; padding: 16px; margin-top: 12px; background: #fafafa; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>Дякуємо за замовлення #{{ order.id }}</h1>
+            <p class="muted">Створено {{ order.created_at|date:"d.m.Y H:i" }}</p>
+            <p class="muted">Статус: {{ order.get_status_display }} • {{ order.get_payment_method_display }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Товари</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Ціна</th>
+                        <th>Кількість</th>
+                        <th>Сума</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.product.price }}₴</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.get_total_price }}₴</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="total">Всього: {{ order.total_price }}₴</p>
+        </div>
+
+        <div class="card">
+            <h2>Оплата</h2>
+            {% if order.payment_method == "card_online" and order.payment_status != "paid" %}
+                <p>Натисніть кнопку, щоб перейти до безпечної оплати:</p>
+                <p style="margin-top:12px;">
+                    <a class="action-button" href="{{ payment_url }}">Оплатити замовлення</a>
+                </p>
+                <p class="muted" style="margin-top:12px;">Замовлення підтвердимо після оплати.</p>
+            {% else %}
+                <div class="info-panel">
+                    <strong>Оплата при отриманні.</strong><br>
+                    Підготуйте суму {{ order.total_price }}₴ для кур'єра або відділення.
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Доставка</h2>
+            {% if order.delivery_address %}<p>{{ order.delivery_address }}</p>{% endif %}
+            <p class="muted">
+                {% if order.delivery_city %}{{ order.delivery_city }}, {% endif %}
+                {% if order.delivery_region %}{{ order.delivery_region }}{% endif %}
+            </p>
+            {% if order.delivery_phone %}<p class="muted">Телефон: {{ order.delivery_phone }}</p>{% endif %}
+        </div>
+
+        <div class="muted" style="text-align:center; margin-top:24px;">
+            <p>Стежте за статусом замовлення у своєму кабінеті.</p>
+            <p><a href="{{ order_detail_url }}" style="color:#3b82f6; text-decoration:none;">Переглянути замовлення</a></p>
+            <p>Дата листа: {% now "d.m.Y H:i" %}</p>
+        </div>
+    </div>
+</body>
+</html>

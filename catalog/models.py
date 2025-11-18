@@ -87,7 +87,6 @@ class Order(models.Model):
         choices=[
             ("cash_on_delivery", "Накладений платіж (оплата при отриманні)"),
             ("card_online", "Онлайн оплата карткою"),
-            ("bank_transfer", "Банківський переказ"),
         ],
         default="cash_on_delivery",
         verbose_name="Спосіб оплати",
@@ -117,6 +116,12 @@ class Order(models.Model):
         max_length=20,
         validators=[phone_validator],
         verbose_name="Телефон для доставки",
+        blank=True,
+        null=True,
+    )
+    email = models.EmailField(
+        verbose_name="Email для повідомлень",
+        help_text="Email для отримання повідомлень про статус замовлення",
         blank=True,
         null=True,
     )

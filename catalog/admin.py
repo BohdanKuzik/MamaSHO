@@ -62,6 +62,7 @@ class OrderAdmin(admin.ModelAdmin):
         "customer__user__first_name",
         "customer__user__last_name",
         "customer__user__email",
+        "email",
         "delivery_city",
         "delivery_phone",
     )
@@ -90,6 +91,7 @@ class OrderAdmin(admin.ModelAdmin):
                     "delivery_address",
                     "delivery_postal_code",
                     "delivery_phone",
+                    "email",
                     "comment",
                 )
             },

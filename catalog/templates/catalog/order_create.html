@@ -85,6 +85,23 @@
                         
                         <div class="form-control mb-4">
                             <label class="label">
+                                <span class="label-text">{{ form.email.label }}</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.email.errors }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.email.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.email.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control mb-4">
+                            <label class="label">
                                 <span class="label-text font-semibold">{{ form.payment_method.label }}</span>
                             </label>
                             <div class="space-y-2">
