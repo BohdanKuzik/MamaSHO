@@ -1,8 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login, authenticate
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+
 from .forms import SignupForm, LoginForm
 
 
@@ -28,3 +31,13 @@ def signup_view(request):
 class CustomLoginView(LoginView):
     authentication_form = LoginForm
     template_name = "registration/login.html"
+
+
+def robots_txt(request):
+    site_url = getattr(settings, "SITE_URL", "https://mamasho.onrender.com").rstrip("/")
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        f"Sitemap: {site_url}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")

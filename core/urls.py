@@ -18,8 +18,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.contrib.sitemaps.views import sitemap
+from django.urls import include, path, re_path
 from django.views.static import serve
+
+from catalog.sitemaps import sitemaps
+
 from . import views
 
 urlpatterns = [
@@ -29,6 +33,8 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("accounts/signup/", views.signup_view, name="signup"),
     path("__reload__/", include("django_browser_reload.urls")),
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
 ]
 
 if settings.DEBUG:
