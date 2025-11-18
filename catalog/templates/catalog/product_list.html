@@ -4,6 +4,7 @@
 <div class="container mx-auto px-4 py-8"
      x-data="{
         filterKeys: ['category', 'min_price', 'max_price', 'available', 'search'],
+        showScrollTop: false,
         
         init() {
             const params = new URLSearchParams(window.location.search);
@@ -51,15 +52,20 @@
             
             const newURL = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
             window.history.pushState({}, '', newURL);
+        },
+
+        scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
      }"
-     x-init="init()">
+     x-init="init()"
+     @scroll.window="showScrollTop = window.scrollY > 400">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-            <h3 class="text-3xl md:text-4xl font-bold mb-2" style="color: #f89886;">Наш каталог</h3>
-            <p class="text-base-content/70">Перегляньте нашу колекцію дитячого одягу</p>
+        <div class="flex-shrink-0">
+            <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" style="color: #f89886;">Наш каталог</h3>
+            <p class="text-sm sm:text-base text-base-content/70">Перегляньте нашу колекцію дитячого одягу</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button type="button"
                     x-show="hasActiveFilters()"
                     x-transition
@@ -68,30 +74,30 @@
                     hx-target="#search-results"
                     hx-trigger="click"
                     hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                    class="btn btn-outline">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    class="btn btn-sm btn-outline flex-shrink-0 gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Очистити фільтри
+                <span class="text-xs sm:text-sm font-medium">Очистити</span>
             </button>
             <button type="button"
-                    class="btn btn-outline"
+                    class="btn btn-sm btn-outline flex-shrink-0"
                     @click="showFilters = !showFilters"
                     :class="{
-                      'btn-outline btn-active': showFilters,
-                      'btn-outline': !showFilters
+                      'btn-active': showFilters
                     }">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-.553.894l-4 2A1 1 0 019 21v-8.586L3.293 6.707A1 1 0 013 6V4z" />
                 </svg>
-                Фільтри
+                <span class="hidden sm:inline">Фільтри</span>
             </button>
             {% if request.user.is_staff or request.user.is_superuser %}
-            <a href="{% url 'add_product' %}" class="btn btn-primary gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <a href="{% url 'add_product' %}" class="btn btn-sm btn-primary gap-1 sm:gap-2 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Додати товар
+                <span class="hidden sm:inline">Додати товар</span>
+                <span class="sm:hidden">Додати</span>
             </a>
             {% endif %}
         </div>
@@ -195,7 +201,7 @@
         </div>
     </div>
     {% if products %}
-        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4" id="search-results">
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 md:gap-6" id="search-results">
             {% for product in products %}
                 {% include 'catalog/partials/product_card.html' %}
             {% endfor %}
@@ -233,5 +239,17 @@
             </div>
         </div>
     {% endif %}
+
+    <button x-show="showScrollTop"
+            x-cloak
+            x-transition
+            @click="scrollToTop()"
+            class="fixed bottom-32 right-3 md:right-6 btn btn-circle btn-sm border border-white/20 text-primary hover:scale-105 transition-all duration-200"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(4px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);"
+            aria-label="Повернутися нагору">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="stroke: rgba(245, 108, 108, 0.85);">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
 </div>
 {% endblock %}

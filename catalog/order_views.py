@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -199,7 +200,7 @@ def order_create(request: HttpRequest) -> HttpResponse:
                         messages.warning(
                             request,
                             "Замовлення створено, але не вдалося надіслати повідомлення адміністратору.",
-                        )
+                    )
 
                     messages.success(
                         request,
@@ -337,8 +338,12 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
     client_email = customer.user.email or ""
     client_phone = order.delivery_phone or customer.phone or ""
 
+    unique_suffix = datetime.now().strftime("%Y%m%d%H%M%S")
+    random_part = uuid4().hex[:6]
+    wayforpay_reference = f"{order.id}-{unique_suffix}-{random_part}"
+
     payment_data = wayforpay.create_payment_form(
-        order_id=str(order.id),
+        order_id=wayforpay_reference,
         amount=order.total_price,
         currency="UAH",
         product_name=f"Замовлення #{order.id}",
@@ -414,20 +419,21 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
         logger.warning("WayForPay callback: invalid signature")
         return JsonResponse({"status": "error", "message": "Invalid signature"}, status=400)
 
-    order_id = callback_data.get("orderReference")
+    order_reference = str(callback_data.get("orderReference", ""))
+    order_id_part = order_reference.split("-")[0] if order_reference else ""
     transaction_status = callback_data.get("transactionStatus")
     amount = callback_data.get("amount")
     reason_code = callback_data.get("reasonCode")
     reason = callback_data.get("reason", "")
 
-    if not order_id:
+    if not order_id_part:
         logger.warning("WayForPay callback: missing orderReference")
         return JsonResponse({"status": "error", "message": "Missing order reference"}, status=400)
 
     try:
-        order = Order.objects.get(pk=int(order_id))
+        order = Order.objects.get(pk=int(order_id_part))
     except (Order.DoesNotExist, ValueError):
-        logger.warning(f"WayForPay callback: order not found - {order_id}")
+        logger.warning(f"WayForPay callback: order not found - {order_reference}")
         return JsonResponse({"status": "error", "message": "Order not found"}, status=404)
 
     try:
@@ -465,7 +471,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
 
                 return JsonResponse(
                     {
-                        "orderReference": order_id,
+                        "orderReference": order_reference,
                         "status": "accept",
                         "time": int(datetime.now().timestamp()),
                     }
@@ -487,7 +493,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
 
                 return JsonResponse(
                     {
-                        "orderReference": order_id,
+                        "orderReference": order_reference,
                         "status": "accept",
                         "time": int(datetime.now().timestamp()),
                     }
@@ -500,7 +506,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
 
                 return JsonResponse(
                     {
-                        "orderReference": order_id,
+                        "orderReference": order_reference,
                         "status": "accept",
                         "time": int(datetime.now().timestamp()),
                     }
@@ -509,7 +515,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         logger.error(
             f"WayForPay callback: error processing payment - {e}",
-            extra={"order_id": order_id},
+            extra={"order_id": order_id_part, "order_reference": order_reference},
             exc_info=True,
         )
         return JsonResponse({"status": "error", "message": "Processing error"}, status=500)

@@ -91,22 +91,22 @@
                     <span class="text-xl font-semibold">Всього:</span>
                     <span class="text-2xl font-bold price-golden">{{ basket.get_total_price }}₴</span>
                 </div>
-                <div class="card-actions justify-end">
-                    <a href="{% url 'product_list' %}" class="btn btn-outline">
+                <div class="card-actions flex flex-col sm:flex-row gap-3 justify-between sm:justify-end mt-4">
+                    <a href="{% url 'product_list' %}" class="btn btn-outline btn-sm sm:btn-md w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
                         Продовжити покупки
                     </a>
                     {% if request.user.is_authenticated %}
-                        <a href="{% url 'order_create' %}" class="btn btn-primary">
+                        <a href="{% url 'order_create' %}" class="btn btn-primary btn-sm sm:btn-md w-full sm:w-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             Оформити замовлення
                         </a>
                     {% else %}
-                        <a href="{% url 'login' %}?next={% url 'order_create' %}" class="btn btn-primary">
+                        <a href="{% url 'login' %}?next={% url 'order_create' %}" class="btn btn-primary btn-sm sm:btn-md w-full sm:w-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>

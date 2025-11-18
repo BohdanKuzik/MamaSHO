@@ -1,7 +1,8 @@
 <div x-data="{ 
             showToast: false, 
             toastMessage: '', 
-            toastType: 'success' 
+            toastType: 'success',
+            showBasketButton: false
         }"
          x-cloak
         @htmx:after-request.window="
@@ -16,6 +17,7 @@
                if (status === 200 && path.includes('basket/add')) {
                    toastMessage = 'Товар успішно додано до кошика!';
                    toastType = 'success';
+                   showBasketButton = true;
                    showToast = true;
                    setTimeout(() => { showToast = false; }, 3000);
                }
@@ -24,6 +26,7 @@
          @basket-updated.window="
             toastMessage = 'Товар успішно додано до кошика!';
             toastType = 'success';
+            showBasketButton = true;
             showToast = true;
             setTimeout(() => { showToast = false; }, 3000);
          "
@@ -31,6 +34,7 @@
             const payload = $event.detail?.value ?? $event.detail ?? {};
             toastMessage = payload.message || 'Операція виконана успішно!';
             toastType = payload.type || 'success';
+            showBasketButton = payload.showBasketButton ?? false;
             showToast = true;
             setTimeout(() => { showToast = false; }, 3000);
          "
@@ -43,11 +47,11 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-x-0"
              x-transition:leave-end="opacity-0 translate-x-full"
-             class="alert shadow-lg max-w-sm pointer-events-auto"
+            class="alert shadow-lg max-w-sm pointer-events-auto border border-blue-200"
              :class="{
-                 'alert-success': toastType === 'success',
-                 'alert-error': toastType === 'error',
-                 'alert-info': toastType === 'info'
+                'bg-blue-500/95 text-white border-blue-400 shadow-blue-200/60': toastType === 'success',
+                'bg-rose-500/95 text-white border-rose-400 shadow-rose-200/60': toastType === 'error',
+                'bg-sky-500/95 text-white border-sky-400 shadow-sky-200/60': toastType === 'info'
              }"
              style="display: none;">
             <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -55,14 +59,16 @@
             </svg>
             <div class="flex-1 flex items-center justify-between gap-3">
                 <span x-text="toastMessage">Товар успішно додано до кошика!</span>
-                <a href="{% url 'basket_detail' %}" 
-                   class="btn btn-sm btn-circle hover:scale-110 transition-transform duration-200"
-                   style="background-color: rgba(255, 255, 255, 0.2); border-color: currentColor; color: inherit; min-width: 2.5rem; height: 2.5rem;"
-                   title="Перейти до кошика">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </a>
+                <template x-if="showBasketButton">
+                    <a href="{% url 'basket_detail' %}" 
+                       class="btn btn-sm btn-circle hover:scale-110 transition-transform duration-200"
+                       style="background-color: rgba(255, 255, 255, 0.2); border-color: currentColor; color: inherit; min-width: 2.5rem; height: 2.5rem;"
+                       title="Перейти до кошика">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </a>
+                </template>
             </div>
         </div>
     </div>

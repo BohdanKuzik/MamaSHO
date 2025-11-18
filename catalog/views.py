@@ -295,6 +295,13 @@ def product_delete_view(request: HttpRequest, pk: int) -> Optional[HttpResponse]
         return None
     obj.delete()
     amount = Product.objects.count()
+    
+    if request.headers.get("HX-Request") == "true":
+        from django.http import HttpResponse
+        response = HttpResponse("")
+        response["HX-Trigger"] = json.dumps({"product-deleted": {"amount": amount}})
+        return response
+    
     return render(
         request, "catalog/partials/product_count.html", context={"amount": amount}
     )
