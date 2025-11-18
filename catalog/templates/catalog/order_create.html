@@ -131,9 +131,9 @@
                             {% endif %}
                         </div>
                         
-                        <div class="card-actions justify-end mt-4">
-                            <a href="{% url 'basket_detail' %}" class="btn btn-outline">Назад до кошика</a>
-                            <button type="submit" class="btn btn-primary">
+                        <div class="card-actions flex-col sm:flex-row justify-end gap-3 mt-4">
+                            <a href="{% url 'basket_detail' %}" class="btn btn-outline w-full sm:w-auto min-h-[48px] touch-manipulation">Назад до кошика</a>
+                            <button type="submit" class="btn btn-primary w-full sm:w-auto min-h-[48px] touch-manipulation" style="touch-action: manipulation;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
