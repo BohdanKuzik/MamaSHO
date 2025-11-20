@@ -32,6 +32,15 @@
     <meta name="twitter:description" content="{% block twitter_description %}{{ default_description }}{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}{{ site_url }}{% static 'images/logo.png' %}{% endblock %}">
     
+    {# Google Analytics (gtag.js) #}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMQK23435V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-BMQK23435V');
+    </script>
+    
     {# Favicon #}
     <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}" class="rounded-lg">
     <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">
