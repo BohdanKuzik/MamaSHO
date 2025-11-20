@@ -30,7 +30,7 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-your-secret-key-here")
 DEBUG = os.getenv("DEBUG", "True") == "True"
-allowed_hosts_str = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,mamasho.store,www.mamasho.store,mamasho.onrender.com")
+allowed_hosts_str = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,mamasho.store,www.mamasho.store")
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(",") if host.strip()]
 
 

@@ -1,12 +1,19 @@
 from django.contrib import admin
 
-from .models import Category, Customer, Order, OrderItem, Product
+from .models import Category, Customer, Order, OrderItem, Product, Size
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name",)
+
+
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
+    list_display = ("get_value_display", "order")
+    list_editable = ("order",)
+    ordering = ("order", "value")
 
 
 @admin.register(Product)

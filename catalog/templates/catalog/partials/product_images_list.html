@@ -6,7 +6,7 @@
         <div class="grid grid-cols-3 gap-2">
             {% if product.image %}
                 <div class="relative group">
-                    <img src="{{ product.image.url }}" alt="Main image" class="w-full h-24 object-cover rounded-lg border-2" style="border-color: #f89886;">
+                    <img src="{{ product.image.url }}" alt="Main image" decoding="async" class="w-full h-24 object-cover rounded-lg border-2" style="border-color: #f89886;">
                     <span class="absolute top-1 right-1 bg-primary text-primary-content rounded-full px-2 py-1 text-xs font-bold">Головне</span>
                     <button type="button"
                             class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
@@ -24,7 +24,7 @@
             {% endif %}
             {% for img in product.images.all %}
                 <div class="relative group">
-                    <img src="{{ img.image.url }}" alt="Image {{ img.id }}" class="w-full h-24 object-cover rounded-lg">
+                    <img src="{{ img.image.url }}" alt="Image {{ img.id }}" decoding="async" class="w-full h-24 object-cover rounded-lg">
                     <span class="absolute top-1 right-1 bg-base-100 rounded-full p-1 text-xs">#{{ img.order|add:1 }}</span>
                     <button type="button"
                             class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"

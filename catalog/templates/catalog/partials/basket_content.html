@@ -22,6 +22,8 @@
                                             {% if item.product.image %}
                                                 <img src="{{ item.product.image.url }}" 
                                                      alt="{{ item.product.name }}" 
+                                                     loading="lazy" 
+                                                     decoding="async"
                                                      class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
                                             {% else %}
                                                 <div class="w-16 h-16 bg-base-200 rounded-lg flex items-center justify-center">

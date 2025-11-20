@@ -34,7 +34,7 @@ class CustomLoginView(LoginView):
 
 
 def robots_txt(request):
-    site_url = getattr(settings, "SITE_URL", "https://mamasho.onrender.com").rstrip("/")
+    site_url = getattr(settings, "SITE_URL", "https://mamasho.store").rstrip("/")
     lines = [
         "User-agent: *",
         "Allow: /",

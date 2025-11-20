@@ -98,11 +98,14 @@
                                     <template x-if="images.length">
                                         <img :src="currentImage?.url" 
                                              :alt="currentImage?.alt" 
+                                             loading="eager"
+                                             decoding="async"
                                              class="w-full h-auto object-cover min-h-[18rem] max-h-[30rem] md:max-h-[36rem] cursor-pointer hover:scale-[1.01] transition-transform duration-200"
                                              @click="openModal(currentIndex)"
                                          x-transition:enter="transition ease-out duration-300"
                                          x-transition:enter-start="opacity-0"
-                                         x-transition:enter-end="opacity-100">
+                                         x-transition:enter-end="opacity-100"
+                                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23e5e7eb\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/%3E%3C/svg%3E';">
                                     </template>
                                     <template x-if="!images.length">
                                         <div class="bg-base-200 rounded-lg flex items-center justify-center h-64">
@@ -144,14 +147,22 @@
                                             <button @click="currentIndex = 0; openModal(0)"
                                                     :class="currentIndex === 0 ? 'border-primary' : 'border-transparent'"
                                                     class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 hover:border-primary/60 transition-all">
-                                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                                                <img src="{{ product.image.url }}" 
+                                                     alt="{{ product.name }}" 
+                                                     loading="lazy" 
+                                                     decoding="async"
+                                                     class="w-full h-full object-cover">
                                             </button>
                                         {% endif %}
                                         {% for img in product.images.all %}
                                             <button @click="currentIndex = {% if product.image %}{{ forloop.counter }}{% else %}{{ forloop.counter0 }}{% endif %}; openModal(currentIndex)"
                                                     :class="currentIndex === {% if product.image %}{{ forloop.counter }}{% else %}{{ forloop.counter0 }}{% endif %} ? 'border-primary' : 'border-transparent'"
                                                     class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 hover:border-primary/60 transition-all">
-                                                <img src="{{ img.image.url }}" alt="{{ product.name }} {{ forloop.counter }}" class="w-full h-full object-cover">
+                                                <img src="{{ img.image.url }}" 
+                                                     alt="{{ product.name }} {{ forloop.counter }}" 
+                                                     loading="lazy" 
+                                                     decoding="async"
+                                                     class="w-full h-full object-cover">
                                     </button>
                                         {% endfor %}
                                     </div>
@@ -227,6 +238,16 @@
                                 {{ product.stock }} од.
                             </div>
                         </div>
+                        {% if product.sizes.all %}
+                        <div class="stat bg-base-200 rounded-lg p-4">
+                            <div class="stat-title">Розміри (зріст)</div>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                {% for size in product.sizes.all %}
+                                    <span class="badge badge-outline badge-lg">{{ size.get_value_display }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% if product.description %}

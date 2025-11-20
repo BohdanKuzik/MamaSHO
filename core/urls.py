@@ -37,13 +37,20 @@ urlpatterns = [
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
 ]
 
+def serve_media_with_cache(request, path, document_root=None):
+    """Serve media files with proper cache headers."""
+    response = serve(request, path, document_root=document_root)
+    response['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return response
+
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
     urlpatterns += [
         re_path(
             r"^media/(?P<path>.*)$",
-            serve,
+            serve_media_with_cache,
             {"document_root": settings.MEDIA_ROOT},
         ),
     ]

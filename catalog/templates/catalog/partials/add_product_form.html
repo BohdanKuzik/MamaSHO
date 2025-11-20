@@ -10,7 +10,7 @@
             <div class="grid gap-4 md:grid-cols-2">
                 {% for field in form %}
                     {% if field.name != 'image' %}
-                    <div class="form-control w-full {% if field.name == 'description' or field.name == 'available' %}md:col-span-2{% endif %}">
+                    <div class="form-control w-full {% if field.name == 'description' or field.name == 'available' or field.name == 'sizes' %}md:col-span-2{% endif %}">
                     <label class="label" for="{{ field.id_for_label }}">
                         <span class="label-text font-semibold text-base">
                             {{ field.label }}
@@ -19,7 +19,29 @@
                             {% endif %}
                         </span>
                     </label>
-                    {% if field.name == 'name' %}
+                    {% if field.name == 'sizes' %}
+                        <div class="flex flex-wrap gap-2 p-2 border border-base-300 rounded-lg min-h-[60px]">
+                            {% if field.field.queryset.exists %}
+                                {% for choice in field.field.queryset %}
+                                    <label class="label cursor-pointer gap-2">
+                                        <input type="checkbox"
+                                               name="{{ field.name }}"
+                                               value="{{ choice.pk }}"
+                                               id="id_{{ field.name }}_{{ forloop.counter0 }}"
+                                               {% if field.value %}
+                                                   {% for val in field.value %}
+                                                       {% if val|stringformat:"s" == choice.pk|stringformat:"s" %}checked{% endif %}
+                                                   {% endfor %}
+                                               {% endif %}
+                                               class="checkbox checkbox-primary checkbox-sm" />
+                                        <span class="label-text">{{ choice.get_value_display }}</span>
+                                    </label>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-sm text-base-content/60">Спочатку створіть розміри в адмін-панелі</p>
+                            {% endif %}
+                        </div>
+                    {% elif field.name == 'name' %}
                         <input type="text"
                                name="{{ field.name }}"
                                id="{{ field.id_for_label }}"

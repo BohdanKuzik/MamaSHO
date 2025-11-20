@@ -1,5 +1,5 @@
 from django import forms
-from .models import Order, Product
+from .models import Order, Product, Size
 
 UKRAINIAN_REGIONS = [
     ("", "Оберіть область"),
@@ -31,12 +31,28 @@ UKRAINIAN_REGIONS = [
 
 
 class CreateProductForm(forms.ModelForm):
+    sizes = forms.ModelMultipleChoiceField(
+        queryset=Size.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(),
+        label="Розміри (зріст)",
+        help_text="Оберіть розміри, для яких підходить цей продукт"
+    )
+
     class Meta:
         model = Product
         exclude = ["image"]
 
 
 class UpdateProductForm(forms.ModelForm):
+    sizes = forms.ModelMultipleChoiceField(
+        queryset=Size.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(),
+        label="Розміри (зріст)",
+        help_text="Оберіть розміри, для яких підходить цей продукт"
+    )
+
     class Meta:
         model = Product
         fields = "__all__"

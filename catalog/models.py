@@ -15,6 +15,41 @@ class Category(models.Model):
         return self.name
 
 
+class Size(models.Model):
+    """Модель для розмірів (зросту) продуктів"""
+    HEIGHT_CHOICES = [
+        ("74-84", "74-84 см"),
+        ("84-94", "84-94 см"),
+        ("94-104", "94-104 см"),
+        ("104-114", "104-114 см"),
+        ("114-124", "114-124 см"),
+        ("124-134", "124-134 см"),
+        ("134-144", "134-144 см"),
+        ("144-154", "144-154 см"),
+        ("154-160", "154-160 см"),
+        ("160+", "160+ см"),
+    ]
+    
+    value = models.CharField(
+        max_length=10,
+        choices=HEIGHT_CHOICES,
+        unique=True,
+        verbose_name="Зріст (см)"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Порядок відображення (менше = вище)"
+    )
+
+    class Meta:
+        ordering = ["order", "value"]
+        verbose_name = "Size"
+        verbose_name_plural = "Sizes"
+
+    def __str__(self: "Size") -> str:
+        return self.get_value_display()
+
+
 class Product(models.Model):
     name = models.CharField(max_length=200)
     category = models.ForeignKey(
@@ -25,6 +60,12 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     available = models.BooleanField(default=True)
+    sizes = models.ManyToManyField(
+        "Size",
+        blank=True,
+        related_name="products",
+        verbose_name="Розміри (зріст)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self: "Product") -> str:

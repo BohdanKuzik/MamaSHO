@@ -225,7 +225,7 @@ def send_customer_order_status_changed_email(order: Order, old_status: str | Non
             order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
         else:
             # Fallback if no request available (e.g., from admin)
-            site_url = getattr(settings, "SITE_URL", "https://mamasho.onrender.com")
+            site_url = getattr(settings, "SITE_URL", "https://mamasho.store")
             order_detail_url = f"{site_url}/order/{order.id}/"
         
         subject = f"Статус замовлення #{order.id} змінено - MamaSHO"
@@ -352,7 +352,7 @@ def order_create(request: HttpRequest) -> HttpResponse:
                         messages.warning(
                             request,
                             "Замовлення створено, але не вдалося надіслати повідомлення на email.",
-                        )
+                    )
 
                     messages.success(
                         request,
@@ -624,7 +624,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
                         from django.test import RequestFactory
                         factory = RequestFactory()
                         fake_request = factory.get('/')
-                        fake_request.META['HTTP_HOST'] = request.META.get('HTTP_HOST', 'mamasho.onrender.com')
+                        fake_request.META['HTTP_HOST'] = request.META.get('HTTP_HOST', 'mamasho.store')
                         fake_request.scheme = request.scheme if hasattr(request, 'scheme') else 'https'
                         send_customer_order_paid_email(order, fake_request)
                     except Exception as e:
@@ -632,7 +632,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
                             "Failed to send customer order paid email",
                             extra={"order_id": order.id, "error": str(e)},
                             exc_info=True,
-                        )
+                    )
 
                 return JsonResponse(
                     {
