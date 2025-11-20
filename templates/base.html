@@ -13,6 +13,12 @@
     <meta name="author" content="{{ site_name }}">
     <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
     
+    {# Performance hints #}
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    
     {# Canonical URL #}
     <link rel="canonical" href="{% block canonical_url %}{{ site_url }}{{ request.path }}{% endblock %}">
     
@@ -47,7 +53,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link href="{% static 'css/custom.css' %}?v=20241118" rel="stylesheet" type="text/css" />
-    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    <script defer src="https://unpkg.com/htmx.org@2.0.3"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="min-h-screen flex flex-col"
@@ -63,6 +69,8 @@
                         <div class="absolute inset-0 bg-gradient-to-br from-base-200/50 to-transparent rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <img src="{% static 'images/logo.png' %}" 
                              alt="MamaSHO" 
+                             width="64"
+                             height="48"
                              class="relative h-10 md:h-12 w-auto object-contain flex-shrink-0 drop-shadow-md group-hover:scale-105 group-hover:drop-shadow-lg transition-all duration-300 transform">
                     </div>
                     <span class="hidden md:inline text-base md:text-lg leading-relaxed">

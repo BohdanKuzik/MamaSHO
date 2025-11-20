@@ -1,3 +1,4 @@
+{% load thumbnail %}
 <div class="card bg-base-100 shadow-xl h-full">
     <div class="card-body overflow-y-auto">
         <form method="post"
@@ -100,7 +101,9 @@
                             <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                 {% if product.image %}
                                     <div class="relative group">
-                                        <img src="{{ product.image.url }}" alt="Main image" decoding="async" class="w-full h-24 object-cover rounded-lg border-2" style="border-color: #f89886;">
+                                        {% thumbnail product.image "400x400" crop="center" upscale=False as form_main_image %}
+                                        <img src="{{ form_main_image.url }}" alt="Main image" decoding="async" class="w-full h-24 object-cover rounded-lg border-2" style="border-color: #f89886;" width="{{ form_main_image.width }}" height="{{ form_main_image.height }}">
+                                        {% endthumbnail %}
                                         <span class="absolute top-1 right-1 bg-primary text-primary-content rounded-full px-2 py-1 text-xs font-bold">Головне</span>
                                         <button type="button"
                                                 class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
@@ -118,7 +121,9 @@
                                 {% endif %}
                                 {% for img in product.images.all %}
                                     <div class="relative group">
-                                        <img src="{{ img.image.url }}" alt="Image {{ img.id }}" decoding="async" class="w-full h-24 object-cover rounded-lg">
+                                        {% thumbnail img.image "400x400" crop="center" upscale=False as form_image %}
+                                        <img src="{{ form_image.url }}" alt="Image {{ img.id }}" decoding="async" class="w-full h-24 object-cover rounded-lg" width="{{ form_image.width }}" height="{{ form_image.height }}">
+                                        {% endthumbnail %}
                                         <span class="absolute top-1 right-1 bg-base-100 rounded-full p-1 text-xs">#{{ img.order|add:1 }}</span>
                                         <button type="button"
                                                 class="absolute top-1 left-1 btn btn-error btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"

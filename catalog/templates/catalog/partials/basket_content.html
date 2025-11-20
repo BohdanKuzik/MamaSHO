@@ -1,3 +1,4 @@
+{% load thumbnail %}
 {% include 'catalog/partials/basket_count.html' %}
 <div id="basket-content">
     {% if basket %}
@@ -20,11 +21,15 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-4">
                                             {% if item.product.image %}
-                                                <img src="{{ item.product.image.url }}" 
-                                                     alt="{{ item.product.name }}" 
-                                                     loading="lazy" 
+                                                {% thumbnail item.product.image "200x200" crop="center" upscale=False as basket_image %}
+                                                <img src="{{ basket_image.url }}"
+                                                     alt="{{ item.product.name }}"
+                                                     loading="lazy"
                                                      decoding="async"
+                                                     width="{{ basket_image.width }}"
+                                                     height="{{ basket_image.height }}"
                                                      class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
+                                                {% endthumbnail %}
                                             {% else %}
                                                 <div class="w-16 h-16 bg-base-200 rounded-lg flex items-center justify-center">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

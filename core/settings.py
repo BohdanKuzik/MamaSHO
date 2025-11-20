@@ -47,11 +47,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
     "django_browser_reload",
+    "sorl.thumbnail",
     "catalog",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",  # Must be after SecurityMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -142,16 +144,21 @@ _project_static = BASE_DIR / "static"
 if _project_static.exists():
     STATICFILES_DIRS.append(_project_static)
 
-# Production settings for static files (when DEBUG=False)
-if not DEBUG:
-    # Enable the WhiteNoise storage backend, which compresses static files
-    # and renames the files with unique names for each version to support
-    # long-term caching
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Use WhiteNoise compressed storage for immutable caching
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_MAX_AGE = 31536000
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# sorl-thumbnail configuration for optimized images
+THUMBNAIL_FORMAT = "WEBP"
+THUMBNAIL_PRESERVE_FORMAT = False
+THUMBNAIL_QUALITY = 80
+THUMBNAIL_COLORSPACE = "RGB"
+THUMBNAIL_SUBDIR = "thumbnails"
+THUMBNAIL_DEBUG = DEBUG
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

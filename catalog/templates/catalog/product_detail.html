@@ -9,10 +9,10 @@
 {% block og_url %}{{ site_url }}{% url 'product_detail' pk=product.pk %}{% endblock %}
 {% block og_title %}{{ product.name }} - {{ site_name }}{% endblock %}
 {% block og_description %}{{ product.description|default:default_description|truncatewords:25 }}{% endblock %}
-{% block og_image %}{% if product.image %}{{ site_url }}{{ product.image.url }}{% else %}{{ site_url }}{% static 'images/logo.png' %}{% endif %}{% endblock %}
+{% block og_image %}{% if primary_gallery_image %}{{ primary_gallery_image.absolute_url }}{% else %}{{ site_url }}{% static 'images/logo.png' %}{% endif %}{% endblock %}
 {% block twitter_title %}{{ product.name }} - {{ site_name }}{% endblock %}
 {% block twitter_description %}{{ product.description|default:default_description|truncatewords:25 }}{% endblock %}
-{% block twitter_image %}{% if product.image %}{{ site_url }}{{ product.image.url }}{% else %}{{ site_url }}{% static 'images/logo.png' %}{% endif %}{% endblock %}
+{% block twitter_image %}{% if primary_gallery_image %}{{ primary_gallery_image.absolute_url }}{% else %}{{ site_url }}{% static 'images/logo.png' %}{% endif %}{% endblock %}
 {% block twitter_url %}{{ site_url }}{% url 'product_detail' pk=product.pk %}{% endblock %}
 
 {% block content %}
@@ -77,8 +77,11 @@
             "name": "{{ product.name|escapejs }}",
             "description": "{{ product.description|default:default_description|escapejs|truncatewords:50 }}",
             "image": [
-                {% if product.image %}"{{ site_url }}{{ product.image.url }}"{% endif %}
-                {% for img in product.images.all %}{% if not forloop.first or product.image %},{% endif %}"{{ site_url }}{{ img.image.url }}"{% endfor %}
+                {% if gallery_images %}
+                    {% for image in gallery_images %}"{{ image.absolute_url }}"{% if not forloop.last %},{% endif %}{% endfor %}
+                {% else %}
+                    "{{ site_url }}{% static 'images/logo.png' %}"
+                {% endif %}
             ],
             "brand": {
                 "@type": "Brand",
@@ -103,9 +106,14 @@
                 <div class="grid md:grid-cols-2 gap-6">
                     <div x-data="{
                         images: [
-                            {% if product.image %}{ url: '{{ product.image.url }}', alt: '{{ product.name|escapejs }}' }{% if product.images.all %},{% endif %}{% endif %}
-                            {% for img in product.images.all %}
-                                { url: '{{ img.image.url }}', alt: '{{ product.name|escapejs }} - {{ forloop.counter }}' }{% if not forloop.last %},{% endif %}
+                            {% for image in gallery_images %}
+                                { 
+                                    url: '{{ image.url }}', 
+                                    thumb: '{{ image.thumb }}',
+                                    alt: '{{ image.alt|escapejs }}',
+                                    width: {{ image.width }},
+                                    height: {{ image.height }}
+                                }{% if not forloop.last %},{% endif %}
                             {% endfor %}
                         ].filter(img => img?.url),
                         currentIndex: 0,
@@ -175,7 +183,7 @@
                         if($event.key === 'ArrowLeft') prevImage(); 
                         if($event.key === 'Escape') closeModal();
                     }">
-                        {% if product.image or product.images.all %}
+                        {% if gallery_images %}
                             <div>
                                 <figure class="rounded-lg overflow-hidden bg-base-200 relative"
                                         @touchstart="handleTouchStart($event)"
@@ -184,14 +192,16 @@
                                     <template x-if="images.length">
                                         <img :src="currentImage?.url" 
                                              :alt="currentImage?.alt" 
+                                             :width="currentImage?.width"
+                                             :height="currentImage?.height"
                                              loading="eager"
                                              decoding="async"
                                              class="w-full h-auto object-cover min-h-[18rem] max-h-[30rem] md:max-h-[36rem] cursor-pointer hover:scale-[1.01] transition-transform duration-200"
                                              @click="openModal(currentIndex)"
-                                         x-transition:enter="transition ease-out duration-300"
-                                         x-transition:enter-start="opacity-0"
-                                         x-transition:enter-end="opacity-100"
-                                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23e5e7eb\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/%3E%3C/svg%3E';">
+                                             x-transition:enter="transition ease-out duration-300"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:enter-end="opacity-100"
+                                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23e5e7eb\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/%3E%3C/svg%3E';">
                                     </template>
                                     <template x-if="!images.length">
                                         <div class="bg-base-200 rounded-lg flex items-center justify-center h-64">
@@ -227,29 +237,20 @@
                                         </div>
                                     </template>
                                 </figure>
-                                {% if product.image or product.images.all %}
+                                {% if gallery_images %}
                                     <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
-                                        {% if product.image %}
-                                            <button @click="currentIndex = 0; openModal(0)"
-                                                    :class="currentIndex === 0 ? 'border-primary' : 'border-transparent'"
+                                        {% for image in gallery_images %}
+                                            <button @click="currentIndex = {{ forloop.counter0 }}; openModal(currentIndex)"
+                                                    :class="currentIndex === {{ forloop.counter0 }} ? 'border-primary' : 'border-transparent'"
                                                     class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 hover:border-primary/60 transition-all">
-                                                <img src="{{ product.image.url }}" 
-                                                     alt="{{ product.name }}" 
+                                                <img src="{{ image.thumb }}" 
+                                                     alt="{{ image.alt }}" 
                                                      loading="lazy" 
                                                      decoding="async"
+                                                     width="{{ image.thumb_width }}"
+                                                     height="{{ image.thumb_height }}"
                                                      class="w-full h-full object-cover">
                                             </button>
-                                        {% endif %}
-                                        {% for img in product.images.all %}
-                                            <button @click="currentIndex = {% if product.image %}{{ forloop.counter }}{% else %}{{ forloop.counter0 }}{% endif %}; openModal(currentIndex)"
-                                                    :class="currentIndex === {% if product.image %}{{ forloop.counter }}{% else %}{{ forloop.counter0 }}{% endif %} ? 'border-primary' : 'border-transparent'"
-                                                    class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 hover:border-primary/60 transition-all">
-                                                <img src="{{ img.image.url }}" 
-                                                     alt="{{ product.name }} {{ forloop.counter }}" 
-                                                     loading="lazy" 
-                                                     decoding="async"
-                                                     class="w-full h-full object-cover">
-                                    </button>
                                         {% endfor %}
                                     </div>
                                 {% endif %}

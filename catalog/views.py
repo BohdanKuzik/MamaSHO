@@ -22,6 +22,7 @@ from django.views.generic import (
 
 from catalog.forms import CreateProductForm, UpdateProductForm
 from catalog.models import Category, Product, ProductImage
+from sorl.thumbnail import get_thumbnail
 
 
 def apply_product_filters(
@@ -127,6 +128,57 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = "catalog/product_detail.html"
     context_object_name = "product"
+
+    def get_context_data(
+        self: "ProductDetailView",
+        **kwargs: object,
+    ) -> Dict[str, object]:
+        context = super().get_context_data(**kwargs)
+        product: Product = self.object
+        request = self.request
+
+        gallery_images: list[Dict[str, object]] = []
+
+        def add_image(image_field: None | ProductImage, order: int) -> None:
+            if not image_field:
+                return
+            try:
+                full = get_thumbnail(
+                    image_field,
+                    "1200x1600",
+                    upscale=False,
+                    quality=85,
+                )
+                thumb = get_thumbnail(
+                    image_field,
+                    "400x400",
+                    crop="center",
+                    upscale=False,
+                    quality=80,
+                )
+            except Exception:
+                return
+
+            gallery_images.append(
+                {
+                    "url": full.url,
+                    "width": full.width,
+                    "height": full.height,
+                    "thumb": thumb.url,
+                    "thumb_width": thumb.width,
+                    "thumb_height": thumb.height,
+                    "alt": f"{product.name}{'' if order == 0 else f' - {order}'}",
+                    "absolute_url": request.build_absolute_uri(full.url),
+                }
+            )
+
+        add_image(product.image, 0)
+        for index, extra_image in enumerate(product.images.all(), start=1):
+            add_image(extra_image.image, index)
+
+        context["gallery_images"] = gallery_images
+        context["primary_gallery_image"] = gallery_images[0] if gallery_images else None
+        return context
 
 
 class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):

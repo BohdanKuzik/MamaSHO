@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load thumbnail %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -130,11 +131,15 @@
                                     <td class="px-4 py-4">
                                         <div class="flex items-center gap-4">
                                             {% if item.product.image %}
-                                                <img src="{{ item.product.image.url }}" 
+                                                {% thumbnail item.product.image "200x200" crop="center" upscale=False as detail_image %}
+                                                <img src="{{ detail_image.url }}" 
                                                      alt="{{ item.product.name }}" 
                                                      loading="lazy" 
                                                      decoding="async"
+                                                     width="{{ detail_image.width }}"
+                                                     height="{{ detail_image.height }}"
                                                      class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
+                                                {% endthumbnail %}
                                             {% endif %}
                                             <div class="min-w-0 flex-1">
                                                 <a href="{% url 'product_detail' pk=item.product.pk %}" 
