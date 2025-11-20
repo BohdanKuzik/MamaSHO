@@ -1,39 +1,38 @@
 from django.urls import path
 
-from .views import (
-    ProductListView,
-    ProductDetailView,
-    ProductCreateView,
-    ProductUpdateView,
-    ProductDeleteView,
-    product_delete_view,
-    pagination_cards_view,
-    product_filter_view,
-    delete_product_image,
-    delete_main_product_image,
-)
 from .basket_views import (
-    basket_detail,
     basket_add,
+    basket_clear,
+    basket_detail,
     basket_remove,
     basket_update,
-    basket_clear,
+)
+from .info_views import (
+    contact_info,
+    refund_policy,
+    terms_and_conditions,
 )
 from .order_views import (
+    order_cancel,
     order_create,
     order_detail,
     order_list,
-    order_cancel,
     order_payment,
-    order_payment_process,
     order_payment_callback,
+    order_payment_process,
 )
-from .info_views import (
-    terms_and_conditions,
-    refund_policy,
-    contact_info,
+from .views import (
+    ProductCreateView,
+    ProductDeleteView,
+    ProductDetailView,
+    ProductListView,
+    ProductUpdateView,
+    delete_main_product_image,
+    delete_product_image,
+    pagination_cards_view,
+    product_delete_view,
+    product_filter_view,
 )
-
 
 urlpatterns = [
     path("", ProductListView.as_view(), name="product_list"),
@@ -67,7 +66,11 @@ urlpatterns = [
     path("order/<int:pk>/", order_detail, name="order_detail"),
     path("order/<int:pk>/cancel/", order_cancel, name="order_cancel"),
     path("order/<int:pk>/payment/", order_payment, name="order_payment"),
-    path("order/<int:pk>/payment/process/", order_payment_process, name="order_payment_process"),
+    path(
+        "order/<int:pk>/payment/process/",
+        order_payment_process,
+        name="order_payment_process",
+    ),
     path("payment/callback/", order_payment_callback, name="order_payment_callback"),
     path("orders/", order_list, name="order_list"),
     path("terms/", terms_and_conditions, name="terms_and_conditions"),

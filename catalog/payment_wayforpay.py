@@ -5,7 +5,7 @@ import hmac
 import logging
 import time
 from decimal import Decimal
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class WayForPay:
     ) -> Dict[str, Any]:
         """
         Створює дані для форми оплати WayForPay
-        
+
         Args:
             order_id: ID замовлення
             amount: Сума оплати
@@ -59,13 +59,14 @@ class WayForPay:
             client_phone: Телефон клієнта
             return_url: URL для повернення після оплати
             service_url: URL для callback від WayForPay
-            
+
         Returns:
             Dict з даними для форми оплати
         """
         amount_float = float(amount)
 
         from urllib.parse import urlparse
+
         parsed_url = urlparse(return_url)
         merchant_domain = parsed_url.netloc or parsed_url.hostname or "localhost"
 
@@ -114,13 +115,13 @@ class WayForPay:
     def verify_callback_signature(self: "WayForPay", data: Dict[str, Any]) -> bool:
         """
         Перевіряє підпис від WayForPay callback
-        
+
         Згідно з документацією WayForPay, для callback підпис формується з:
         merchantAccount;orderReference;amount;currency;authCode;cardPan;transactionStatus;reasonCode
-        
+
         Args:
             data: Дані від WayForPay
-            
+
         Returns:
             True якщо підпис валідний
         """
@@ -157,10 +158,10 @@ class WayForPay:
     def get_payment_form_html(self: "WayForPay", payment_data: Dict[str, Any]) -> str:
         """
         Генерує HTML форму для оплати через WayForPay
-        
+
         Args:
             payment_data: Дані для оплати
-            
+
         Returns:
             HTML код форми
         """
@@ -168,7 +169,9 @@ class WayForPay:
         for key, value in payment_data.items():
             if isinstance(value, list):
                 for item in value:
-                    form_fields += f'<input type="hidden" name="{key}[]" value="{item}">\n'
+                    form_fields += (
+                        f'<input type="hidden" name="{key}[]" value="{item}">\n'
+                    )
             else:
                 form_fields += f'<input type="hidden" name="{key}" value="{value}">\n'
 

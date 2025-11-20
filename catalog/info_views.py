@@ -17,4 +17,3 @@ def refund_policy(request: HttpRequest) -> HttpResponse:
 def contact_info(request: HttpRequest) -> HttpResponse:
     """Contact Information page"""
     return render(request, "catalog/info/contact_info.html")
-

@@ -17,6 +17,7 @@ class Category(models.Model):
 
 class Size(models.Model):
     """Модель для розмірів (зросту) продуктів"""
+
     HEIGHT_CHOICES = [
         ("74-84", "74-84 см"),
         ("84-94", "84-94 см"),
@@ -29,16 +30,12 @@ class Size(models.Model):
         ("154-160", "154-160 см"),
         ("160+", "160+ см"),
     ]
-    
+
     value = models.CharField(
-        max_length=10,
-        choices=HEIGHT_CHOICES,
-        unique=True,
-        verbose_name="Зріст (см)"
+        max_length=10, choices=HEIGHT_CHOICES, unique=True, verbose_name="Зріст (см)"
     )
     order = models.PositiveIntegerField(
-        default=0,
-        help_text="Порядок відображення (менше = вище)"
+        default=0, help_text="Порядок відображення (менше = вище)"
     )
 
     class Meta:
@@ -61,10 +58,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     available = models.BooleanField(default=True)
     sizes = models.ManyToManyField(
-        "Size",
-        blank=True,
-        related_name="products",
-        verbose_name="Розміри (зріст)"
+        "Size", blank=True, related_name="products", verbose_name="Розміри (зріст)"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -147,9 +141,18 @@ class Order(models.Model):
     total_price = models.DecimalField(
         max_digits=10, decimal_places=2, help_text="Загальна сума замовлення", default=0
     )
-    delivery_address = models.TextField(verbose_name="Адреса доставки", blank=True, null=True)
-    delivery_city = models.CharField(max_length=100, verbose_name="Місто", blank=True, null=True)
-    delivery_region = models.CharField(max_length=100, verbose_name="Область", blank=True, null=True)
+    delivery_address = models.TextField(
+        verbose_name="Адреса доставки", blank=True, null=True
+    )
+    delivery_city = models.CharField(
+        max_length=100, verbose_name="Місто", blank=True, null=True
+    )
+    delivery_region = models.CharField(
+        max_length=100,
+        verbose_name="Область",
+        blank=True,
+        null=True,
+    )
     delivery_postal_code = models.CharField(
         max_length=10, blank=True, null=True, verbose_name="Поштовий індекс"
     )
@@ -166,7 +169,9 @@ class Order(models.Model):
         blank=True,
         null=True,
     )
-    comment = models.TextField(blank=True, null=True, verbose_name="Коментар до замовлення")
+    comment = models.TextField(
+        blank=True, null=True, verbose_name="Коментар до замовлення"
+    )
 
     class Meta:
         ordering = ("-created_at",)
@@ -186,10 +191,10 @@ class Order(models.Model):
     def cancel(self: "Order") -> None:
         if not self.can_be_cancelled():
             raise ValueError("Замовлення не може бути скасоване в поточному статусі")
-        
+
         self.status = "cancelled"
         self.save()
-        
+
         for item in self.items.all():
             item.product.stock += item.quantity
             item.product.save()

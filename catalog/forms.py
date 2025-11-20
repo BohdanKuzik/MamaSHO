@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from django import forms
+
 from .models import Order, Product, Size
 
 UKRAINIAN_REGIONS = [
@@ -36,7 +39,7 @@ class CreateProductForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple(),
         label="Розміри (зріст)",
-        help_text="Оберіть розміри, для яких підходить цей продукт"
+        help_text="Оберіть розміри, для яких підходить цей продукт",
     )
 
     class Meta:
@@ -50,7 +53,7 @@ class UpdateProductForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple(),
         label="Розміри (зріст)",
-        help_text="Оберіть розміри, для яких підходить цей продукт"
+        help_text="Оберіть розміри, для яких підходить цей продукт",
     )
 
     class Meta:
@@ -155,7 +158,7 @@ class OrderForm(forms.ModelForm):
             "comment",
         ]
 
-    def clean_delivery_phone(self):
+    def clean_delivery_phone(self: "OrderForm") -> str:
         phone = self.cleaned_data.get("delivery_phone")
         if phone and not phone.startswith("+380"):
             raise forms.ValidationError(

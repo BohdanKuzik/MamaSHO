@@ -9,7 +9,6 @@ from django.views.decorators.http import require_POST
 from .basket import BasketView, SessionBasket
 from .models import Product
 
-
 logger = logging.getLogger(__name__)
 
 

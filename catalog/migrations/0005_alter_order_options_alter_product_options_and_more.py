@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("catalog", "0004_product_created_at_alter_customer_phone_basket_and_more"),
     ]

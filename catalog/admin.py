@@ -63,7 +63,13 @@ class OrderAdmin(admin.ModelAdmin):
         "status",
         "created_at",
     )
-    list_filter = ("status", "payment_status", "payment_method", "created_at", "delivery_region")
+    list_filter = (
+        "status",
+        "payment_status",
+        "payment_method",
+        "created_at",
+        "delivery_region",
+    )
     search_fields = (
         "id",
         "customer__user__first_name",

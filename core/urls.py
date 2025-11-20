@@ -34,13 +34,19 @@ urlpatterns = [
     path("accounts/signup/", views.signup_view, name="signup"),
     path("__reload__/", include("django_browser_reload.urls")),
     path("robots.txt", views.robots_txt, name="robots_txt"),
-    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
 ]
+
 
 def serve_media_with_cache(request, path, document_root=None):
     """Serve media files with proper cache headers."""
     response = serve(request, path, document_root=document_root)
-    response['Cache-Control'] = 'public, max-age=31536000, immutable'
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
     return response
 
 

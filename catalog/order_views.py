@@ -7,8 +7,8 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -16,13 +16,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from .basket import BasketView, SessionBasket
 from .forms import OrderForm
-from .models import Customer, Order, OrderItem, Product
+from .models import Customer, Order, OrderItem
 from .payment_wayforpay import WayForPay
-
 
 logger = logging.getLogger(__name__)
 
@@ -30,43 +29,53 @@ logger = logging.getLogger(__name__)
 def send_order_notification_email(order: Order) -> None:
     """Send email notification to admin about new order"""
     try:
-        notification_email = getattr(settings, "ORDER_NOTIFICATION_EMAIL", "kuzikbv2509@gmail.com")
-        
+        notification_email = getattr(
+            settings, "ORDER_NOTIFICATION_EMAIL", "kuzikbv2509@gmail.com"
+        )
+
         if not notification_email:
-            logger.warning("ORDER_NOTIFICATION_EMAIL not configured, skipping email notification")
+            logger.warning(
+                "ORDER_NOTIFICATION_EMAIL not configured, skipping email notification"
+            )
             return
-        
+
         # Support multiple recipients: comma-separated string or list
         if isinstance(notification_email, str):
             # Split by comma and strip whitespace
-            recipients = [email.strip() for email in notification_email.split(",") if email.strip()]
+            recipients = [
+                email.strip()
+                for email in notification_email.split(",")
+                if email.strip()
+            ]
         else:
             # Already a list
             recipients = list(notification_email)
-        
+
         if not recipients:
-            logger.warning("No valid email recipients configured, skipping email notification")
+            logger.warning(
+                "No valid email recipients configured, skipping email notification"
+            )
             return
-        
+
         # Check email configuration
         email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
         email_host_password = getattr(settings, "EMAIL_HOST_PASSWORD", "")
         email_backend = getattr(settings, "EMAIL_BACKEND", "")
-        
+
         if not email_host_user:
             logger.error(
                 "EMAIL_HOST_USER not configured. Cannot send email.",
-                extra={"order_id": order.id}
+                extra={"order_id": order.id},
             )
             return
-        
+
         if not email_host_password:
             logger.error(
                 "EMAIL_HOST_PASSWORD not configured. Cannot send email.",
-                extra={"order_id": order.id}
+                extra={"order_id": order.id},
             )
             return
-        
+
         logger.info(
             "Attempting to send order notification email",
             extra={
@@ -75,18 +84,17 @@ def send_order_notification_email(order: Order) -> None:
                 "from_email": email_host_user,
                 "email_backend": email_backend,
                 "email_host": getattr(settings, "EMAIL_HOST", ""),
-            }
+            },
         )
-        
+
         subject = f"Нове замовлення #{order.id} - MamaSHO"
-        
+
         html_message = render_to_string(
-            "catalog/emails/order_notification.html",
-            {"order": order}
+            "catalog/emails/order_notification.html", {"order": order}
         )
-        
+
         from_email = email_host_user
-        
+
         send_mail(
             subject=subject,
             message="",
@@ -95,10 +103,10 @@ def send_order_notification_email(order: Order) -> None:
             html_message=html_message,
             fail_silently=False,
         )
-        
+
         logger.info(
             "Order notification email sent successfully",
-            extra={"order_id": order.id, "recipients": recipients}
+            extra={"order_id": order.id, "recipients": recipients},
         )
     except Exception as e:
         error_msg = str(e)
@@ -120,28 +128,34 @@ def send_customer_order_created_email(order: Order, request: HttpRequest) -> Non
     """Send email to customer when order is created"""
     try:
         if not order.email:
-            logger.warning(f"Order {order.id} has no email, skipping customer notification")
+            logger.warning(
+                f"Order {order.id} has no email, skipping customer notification"
+            )
             return
-        
+
         email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
         if not email_host_user:
             logger.error("EMAIL_HOST_USER not configured. Cannot send email.")
             return
-        
-        payment_url = request.build_absolute_uri(reverse("order_payment", kwargs={"pk": order.id}))
-        order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
-        
+
+        payment_url = request.build_absolute_uri(
+            reverse("order_payment", kwargs={"pk": order.id})
+        )
+        order_detail_url = request.build_absolute_uri(
+            reverse("order_detail", kwargs={"pk": order.id})
+        )
+
         subject = f"Ваше замовлення #{order.id} прийнято - MamaSHO"
-        
+
         html_message = render_to_string(
             "catalog/emails/order_created.html",
             {
                 "order": order,
                 "payment_url": payment_url,
                 "order_detail_url": order_detail_url,
-            }
+            },
         )
-        
+
         send_mail(
             subject=subject,
             message="",  # HTML only, no plain text
@@ -150,10 +164,10 @@ def send_customer_order_created_email(order: Order, request: HttpRequest) -> Non
             html_message=html_message,
             fail_silently=False,
         )
-        
+
         logger.info(
             "Customer order created email sent successfully",
-            extra={"order_id": order.id, "email": order.email}
+            extra={"order_id": order.id, "email": order.email},
         )
     except Exception as e:
         logger.error(
@@ -169,24 +183,26 @@ def send_customer_order_paid_email(order: Order, request: HttpRequest) -> None:
         if not order.email:
             logger.warning(f"Order {order.id} has no email, skipping paid notification")
             return
-        
+
         email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
         if not email_host_user:
             logger.error("EMAIL_HOST_USER not configured. Cannot send email.")
             return
-        
-        order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
-        
+
+        order_detail_url = request.build_absolute_uri(
+            reverse("order_detail", kwargs={"pk": order.id})
+        )
+
         subject = f"Оплата замовлення #{order.id} підтверджена - MamaSHO"
-        
+
         html_message = render_to_string(
             "catalog/emails/order_paid.html",
             {
                 "order": order,
                 "order_detail_url": order_detail_url,
-            }
+            },
         )
-        
+
         send_mail(
             subject=subject,
             message="",  # HTML only, no plain text
@@ -195,10 +211,10 @@ def send_customer_order_paid_email(order: Order, request: HttpRequest) -> None:
             html_message=html_message,
             fail_silently=False,
         )
-        
+
         logger.info(
             "Customer order paid email sent successfully",
-            extra={"order_id": order.id, "email": order.email}
+            extra={"order_id": order.id, "email": order.email},
         )
     except Exception as e:
         logger.error(
@@ -208,37 +224,43 @@ def send_customer_order_paid_email(order: Order, request: HttpRequest) -> None:
         )
 
 
-def send_customer_order_status_changed_email(order: Order, old_status: str | None = None, request: HttpRequest | None = None) -> None:
+def send_customer_order_status_changed_email(
+    order: Order, old_status: str | None = None, request: HttpRequest | None = None
+) -> None:
     """Send email to customer when order status changes"""
     try:
         if not order.email:
-            logger.warning(f"Order {order.id} has no email, skipping status change notification")
+            logger.warning(
+                f"Order {order.id} has no email, skipping status change notification"
+            )
             return
-        
+
         email_host_user = getattr(settings, "EMAIL_HOST_USER", "")
         if not email_host_user:
             logger.error("EMAIL_HOST_USER not configured. Cannot send email.")
             return
-        
+
         # Build order detail URL
         if request:
-            order_detail_url = request.build_absolute_uri(reverse("order_detail", kwargs={"pk": order.id}))
+            order_detail_url = request.build_absolute_uri(
+                reverse("order_detail", kwargs={"pk": order.id})
+            )
         else:
             # Fallback if no request available (e.g., from admin)
             site_url = getattr(settings, "SITE_URL", "https://mamasho.store")
             order_detail_url = f"{site_url}/order/{order.id}/"
-        
+
         subject = f"Статус замовлення #{order.id} змінено - MamaSHO"
-        
+
         html_message = render_to_string(
             "catalog/emails/order_status_changed.html",
             {
                 "order": order,
                 "old_status": old_status,
                 "order_detail_url": order_detail_url,
-            }
+            },
         )
-        
+
         send_mail(
             subject=subject,
             message="",  # HTML only, no plain text
@@ -247,10 +269,15 @@ def send_customer_order_status_changed_email(order: Order, old_status: str | Non
             html_message=html_message,
             fail_silently=False,
         )
-        
+
         logger.info(
             "Customer order status changed email sent successfully",
-            extra={"order_id": order.id, "email": order.email, "new_status": order.status, "old_status": old_status}
+            extra={
+                "order_id": order.id,
+                "email": order.email,
+                "new_status": order.status,
+                "old_status": old_status,
+            },
         )
     except Exception as e:
         logger.error(
@@ -274,7 +301,9 @@ def order_create(request: HttpRequest) -> HttpResponse:
     basket = get_basket_for_order(request)
 
     if not basket or len(basket) == 0:
-        messages.error(request, "Ваш кошик порожній. Додайте товари перед оформленням замовлення.")
+        messages.error(
+            request, "Ваш кошик порожній. Додайте товари перед оформленням замовлення."
+        )
         return redirect("basket_detail")
 
     if request.method == "POST":
@@ -336,9 +365,12 @@ def order_create(request: HttpRequest) -> HttpResponse:
                         # Don't fail the order creation if email fails
                         messages.warning(
                             request,
-                            "Замовлення створено, але не вдалося надіслати повідомлення адміністратору.",
+                            (
+                                "Замовлення створено, але не вдалося надіслати "
+                                "повідомлення адміністратору."
+                            ),
                         )
-                    
+
                     # Send email to customer with order details and payment link
                     try:
                         send_customer_order_created_email(order, request)
@@ -352,16 +384,16 @@ def order_create(request: HttpRequest) -> HttpResponse:
                         messages.warning(
                             request,
                             "Замовлення створено, але не вдалося надіслати повідомлення на email.",
-                    )
+                        )
 
                     messages.success(
                         request,
                         f"Замовлення #{order.id} успішно створено!",
                     )
-                    
+
                     if order.payment_method == "card_online":
                         return redirect("order_payment", pk=order.id)
-                    
+
                     return redirect("order_detail", pk=order.id)
 
             except Exception as e:
@@ -400,7 +432,11 @@ def order_detail(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def order_list(request: HttpRequest) -> HttpResponse:
     customer, _ = Customer.objects.get_or_create(user=request.user)
-    orders = Order.objects.filter(customer=customer).select_related("customer").prefetch_related("items__product")
+    orders = (
+        Order.objects.filter(customer=customer)
+        .select_related("customer")
+        .prefetch_related("items__product")
+    )
     return render(request, "catalog/order_list.html", {"orders": orders})
 
 
@@ -455,18 +491,19 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
 
     if not merchant_account or not merchant_secret:
         logger.warning(
-            "WayForPay credentials not configured",
-            extra={"order_id": order.id}
+            "WayForPay credentials not configured", extra={"order_id": order.id}
         )
         messages.warning(
             request,
             "Платіжна система не налаштована. Використовується тестовий режим.",
         )
-        return render(request, "catalog/order_payment.html", {"order": order, "test_mode": True})
+        return render(
+            request, "catalog/order_payment.html", {"order": order, "test_mode": True}
+        )
 
     sandbox = getattr(settings, "WAYFORPAY_SANDBOX", False)
     wayforpay = WayForPay(merchant_account, merchant_secret, sandbox=sandbox)
-    
+
     logger.info(
         "Creating WayForPay payment",
         extra={
@@ -474,7 +511,7 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
             "amount": float(order.total_price),
             "sandbox_mode": sandbox,
             "merchant_account": merchant_account,
-        }
+        },
     )
 
     return_url = request.build_absolute_uri(
@@ -483,7 +520,10 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
     service_url = request.build_absolute_uri(reverse("order_payment_callback"))
 
     customer = order.customer
-    client_name = f"{customer.user.first_name} {customer.user.last_name}".strip() or customer.user.username
+    client_name = (
+        f"{customer.user.first_name} {customer.user.last_name}".strip()
+        or customer.user.username
+    )
     client_email = customer.user.email or ""
     client_phone = order.delivery_phone or customer.phone or ""
 
@@ -543,7 +583,9 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
 
     if not merchant_account or not merchant_secret:
         logger.error("WayForPay keys not configured")
-        return JsonResponse({"status": "error", "message": "Configuration error"}, status=500)
+        return JsonResponse(
+            {"status": "error", "message": "Configuration error"}, status=500
+        )
 
     wayforpay = WayForPay(merchant_account, merchant_secret)
 
@@ -558,7 +600,7 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
         else:
             try:
                 callback_data = json.loads(request.body.decode("utf-8"))
-            except:
+            except Exception:
                 callback_data = {}
     except Exception as e:
         logger.error(f"WayForPay callback: error parsing data - {e}")
@@ -566,7 +608,9 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
 
     if not wayforpay.verify_callback_signature(callback_data):
         logger.warning("WayForPay callback: invalid signature")
-        return JsonResponse({"status": "error", "message": "Invalid signature"}, status=400)
+        return JsonResponse(
+            {"status": "error", "message": "Invalid signature"}, status=400
+        )
 
     order_reference = str(callback_data.get("orderReference", ""))
     order_id_part = order_reference.split("-")[0] if order_reference else ""
@@ -577,13 +621,17 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
 
     if not order_id_part:
         logger.warning("WayForPay callback: missing orderReference")
-        return JsonResponse({"status": "error", "message": "Missing order reference"}, status=400)
+        return JsonResponse(
+            {"status": "error", "message": "Missing order reference"}, status=400
+        )
 
     try:
         order = Order.objects.get(pk=int(order_id_part))
     except (Order.DoesNotExist, ValueError):
         logger.warning(f"WayForPay callback: order not found - {order_reference}")
-        return JsonResponse({"status": "error", "message": "Order not found"}, status=404)
+        return JsonResponse(
+            {"status": "error", "message": "Order not found"}, status=404
+        )
 
     try:
         with transaction.atomic():
@@ -592,11 +640,15 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
                     callback_amount = Decimal(str(amount))
                     if callback_amount != order.total_price:
                         logger.warning(
-                            f"WayForPay callback: amount mismatch - expected {order.total_price}, got {callback_amount}",
+                            (
+                                f"WayForPay callback: amount mismatch - "
+                                f"expected {order.total_price}, got {callback_amount}"
+                            ),
                             extra={"order_id": order.id},
                         )
                         return JsonResponse(
-                            {"status": "error", "message": "Amount mismatch"}, status=400
+                            {"status": "error", "message": "Amount mismatch"},
+                            status=400,
                         )
                 except (ValueError, TypeError) as e:
                     logger.warning(
@@ -617,22 +669,27 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
                             "reason_code": reason_code,
                         },
                     )
-                    
+
                     # Send email to customer about payment confirmation
                     try:
                         # Build request object for URL generation
                         from django.test import RequestFactory
+
                         factory = RequestFactory()
-                        fake_request = factory.get('/')
-                        fake_request.META['HTTP_HOST'] = request.META.get('HTTP_HOST', 'mamasho.store')
-                        fake_request.scheme = request.scheme if hasattr(request, 'scheme') else 'https'
+                        fake_request = factory.get("/")
+                        fake_request.META["HTTP_HOST"] = request.META.get(
+                            "HTTP_HOST", "mamasho.store"
+                        )
+                        fake_request.scheme = (
+                            request.scheme if hasattr(request, "scheme") else "https"
+                        )
                         send_customer_order_paid_email(order, fake_request)
                     except Exception as e:
                         logger.error(
                             "Failed to send customer order paid email",
                             extra={"order_id": order.id, "error": str(e)},
                             exc_info=True,
-                    )
+                        )
 
                 return JsonResponse(
                     {
@@ -683,4 +740,6 @@ def order_payment_callback(request: HttpRequest) -> HttpResponse:
             extra={"order_id": order_id_part, "order_reference": order_reference},
             exc_info=True,
         )
-        return JsonResponse({"status": "error", "message": "Processing error"}, status=500)
+        return JsonResponse(
+            {"status": "error", "message": "Processing error"}, status=500
+        )

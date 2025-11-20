@@ -3,6 +3,7 @@ from django.db import migrations
 
 def create_initial_admin(apps, schema_editor):
     import os
+
     from django.contrib.auth import get_user_model
 
     # Only run if explicitly enabled

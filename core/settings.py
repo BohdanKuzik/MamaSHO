@@ -30,7 +30,9 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-your-secret-key-here")
 DEBUG = os.getenv("DEBUG", "True") == "True"
-allowed_hosts_str = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,mamasho.store,www.mamasho.store")
+allowed_hosts_str = os.getenv(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1,mamasho.store,www.mamasho.store"
+)
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(",") if host.strip()]
 
 
@@ -172,7 +174,9 @@ if _sandbox_env:
     WAYFORPAY_SANDBOX = _sandbox_env == "1"
 else:
     # If not explicitly set, use production mode if credentials are configured
-    WAYFORPAY_SANDBOX = not (WAYFORPAY_MERCHANT_ACCOUNT and WAYFORPAY_MERCHANT_SECRET_KEY)
+    WAYFORPAY_SANDBOX = not (
+        WAYFORPAY_MERCHANT_ACCOUNT and WAYFORPAY_MERCHANT_SECRET_KEY
+    )
 
 # Email settings
 # Use SMTP if EMAIL_HOST_USER is set, otherwise use console backend for development
@@ -190,7 +194,11 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@mamasho.com")
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@mamasho.com"
+)
 
 # Order notification email
-ORDER_NOTIFICATION_EMAIL = os.getenv("ORDER_NOTIFICATION_EMAIL", "kuzikbv2509@gmail.com")
+ORDER_NOTIFICATION_EMAIL = os.getenv(
+    "ORDER_NOTIFICATION_EMAIL", "kuzikbv2509@gmail.com"
+)
