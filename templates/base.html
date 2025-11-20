@@ -5,7 +5,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MamaSHO</title>
+    
+    {# SEO Meta Tags #}
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ default_description }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ default_keywords }}{% endblock %}">
+    <meta name="author" content="{{ site_name }}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+    
+    {# Canonical URL #}
+    <link rel="canonical" href="{% block canonical_url %}{{ site_url }}{{ request.path }}{% endblock %}">
+    
+    {# Open Graph / Facebook #}
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ site_url }}{{ request.path }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{{ site_name }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ default_description }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ site_url }}{% static 'images/logo.png' %}{% endblock %}">
+    <meta property="og:site_name" content="{{ site_name }}">
+    <meta property="og:locale" content="uk_UA">
+    
+    {# Twitter Card #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{% block twitter_url %}{{ site_url }}{{ request.path }}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ site_name }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ default_description }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ site_url }}{% static 'images/logo.png' %}{% endblock %}">
+    
+    {# Favicon #}
     <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}" class="rounded-lg">
     <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>

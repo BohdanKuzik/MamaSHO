@@ -1,17 +1,103 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - {{ site_name }}{% endblock %}
+{% block meta_description %}{{ product.description|default:default_description|truncatewords:25 }}{% endblock %}
+{% block meta_keywords %}{{ product.category.name }}, {{ product.name }}, дитячі товари, {{ default_keywords }}{% endblock %}
+{% block canonical_url %}{{ site_url }}{% url 'product_detail' pk=product.pk %}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_url %}{{ site_url }}{% url 'product_detail' pk=product.pk %}{% endblock %}
+{% block og_title %}{{ product.name }} - {{ site_name }}{% endblock %}
+{% block og_description %}{{ product.description|default:default_description|truncatewords:25 }}{% endblock %}
+{% block og_image %}{% if product.image %}{{ site_url }}{{ product.image.url }}{% else %}{{ site_url }}{% static 'images/logo.png' %}{% endif %}{% endblock %}
+{% block twitter_title %}{{ product.name }} - {{ site_name }}{% endblock %}
+{% block twitter_description %}{{ product.description|default:default_description|truncatewords:25 }}{% endblock %}
+{% block twitter_image %}{% if product.image %}{{ site_url }}{{ product.image.url }}{% else %}{{ site_url }}{% static 'images/logo.png' %}{% endif %}{% endblock %}
+{% block twitter_url %}{{ site_url }}{% url 'product_detail' pk=product.pk %}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
+        {# Breadcrumbs для SEO #}
+        <nav aria-label="Breadcrumb" class="mb-4">
+            <ol class="flex items-center gap-2 text-sm text-base-content/70">
+                <li><a href="{% url 'product_list' %}" class="hover:text-primary transition-colors">Головна</a></li>
+                <li><span>/</span></li>
+                <li><a href="{% url 'product_list' %}" class="hover:text-primary transition-colors">Каталог</a></li>
+                <li><span>/</span></li>
+                <li><a href="{% url 'product_list' %}?category={{ product.category.id }}" class="hover:text-primary transition-colors">{{ product.category.name }}</a></li>
+                <li><span>/</span></li>
+                <li class="text-base-content">{{ product.name|truncatewords:5 }}</li>
+            </ol>
+        </nav>
+        
+        {# Breadcrumbs Schema.org #}
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Головна",
+                    "item": "{{ site_url }}{% url 'product_list' %}"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Каталог",
+                    "item": "{{ site_url }}{% url 'product_list' %}"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "{{ product.category.name|escapejs }}",
+                    "item": "{{ site_url }}{% url 'product_list' %}?category={{ product.category.id }}"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 4,
+                    "name": "{{ product.name|escapejs }}",
+                    "item": "{{ site_url }}{% url 'product_detail' pk=product.pk %}"
+                }
+            ]
+        }
+        </script>
+        
         <div class="mb-6">
-            <a href="{% url 'product_list' %}" class="btn btn-sm btn-ghost mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Назад до списку
-            </a>
-            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-base-content break-words" style="word-break: break-word; overflow-wrap: anywhere;">{{ product.name }}</h2>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-base-content break-words mb-4" style="word-break: break-word; overflow-wrap: anywhere;">{{ product.name }}</h1>
         </div>
+        
+        {# Schema.org Structured Data для продукту #}
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "name": "{{ product.name|escapejs }}",
+            "description": "{{ product.description|default:default_description|escapejs|truncatewords:50 }}",
+            "image": [
+                {% if product.image %}"{{ site_url }}{{ product.image.url }}"{% endif %}
+                {% for img in product.images.all %}{% if not forloop.first or product.image %},{% endif %}"{{ site_url }}{{ img.image.url }}"{% endfor %}
+            ],
+            "brand": {
+                "@type": "Brand",
+                "name": "{{ site_name }}"
+            },
+            "offers": {
+                "@type": "Offer",
+                "url": "{{ site_url }}{% url 'product_detail' pk=product.pk %}",
+                "priceCurrency": "UAH",
+                "price": "{{ product.price }}",
+                "priceValidUntil": "2025-12-31",
+                "availability": "{% if product.available and product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+                "itemCondition": "https://schema.org/NewCondition"
+            },
+            "category": "{{ product.category.name|escapejs }}",
+            "sku": "{{ product.pk }}"
+        }
+        </script>
+        
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
                 <div class="grid md:grid-cols-2 gap-6">

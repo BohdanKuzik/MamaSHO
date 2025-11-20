@@ -1,19 +1,18 @@
 from django.conf import settings
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.views import LoginView
-from django.contrib.auth import login, authenticate
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .forms import SignupForm, LoginForm
+from .forms import LoginForm, SignupForm
 
 
 def signup_view(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            form.save()  # Створює користувача
             username = form.cleaned_data.get("username")
             raw_password = form.cleaned_data.get("password1")
             authenticated_user = authenticate(
@@ -38,6 +37,12 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /accounts/",
+        "Disallow: /media/",
+        "Disallow: /static/",
+        "Disallow: /__reload__/",
+        "",
         f"Sitemap: {site_url}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")

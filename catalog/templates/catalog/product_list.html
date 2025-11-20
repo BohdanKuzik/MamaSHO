@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 
+{% block title %}Каталог товарів - {{ site_name }}{% endblock %}
+{% block meta_description %}Перегляньте наш каталог дитячих товарів. Широкий вибір якісних товарів для дітей різного віку. {{ default_description }}{% endblock %}
+{% block canonical_url %}{{ site_url }}{% url 'product_list' %}{% endblock %}
+{% block og_title %}Каталог товарів - {{ site_name }}{% endblock %}
+{% block og_description %}Перегляньте наш каталог дитячих товарів. Широкий вибір якісних товарів для дітей різного віку.{% endblock %}
+
 {% block content %}
 <div class="container mx-auto px-4 py-8"
      x-data="{
@@ -60,9 +66,20 @@
      }"
      x-init="init()"
      @scroll.window="showScrollTop = window.scrollY > 400">
+    {# Schema.org Structured Data для каталогу #}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org/",
+        "@type": "CollectionPage",
+        "name": "Каталог товарів - {{ site_name }}",
+        "description": "Перегляньте наш каталог дитячих товарів",
+        "url": "{{ site_url }}{% url 'product_list' %}"
+    }
+    </script>
+    
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div class="flex-shrink-0">
-            <h3 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" style="color: #f89886;">Наш каталог</h3>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" style="color: #f89886;">Наш каталог</h1>
             <p class="text-sm sm:text-base text-base-content/70">Перегляньте нашу колекцію дитячого одягу</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
