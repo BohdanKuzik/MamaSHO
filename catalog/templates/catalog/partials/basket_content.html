@@ -82,7 +82,7 @@
                 </div>
             {% endfor %}
             </div>
-            <div class="card bg-base-100 shadow-2xl border-t-4 lg:sticky lg:top-4" style="border-top-color: #f89886;">
+            <div id="basket-summary" class="card bg-base-100 shadow-2xl border-t-4 lg:sticky lg:top-4" style="border-top-color: #f89886;">
                 <div class="card-body bg-gradient-to-r from-base-100 to-base-50">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-xl font-semibold">Всього:</span>
@@ -96,14 +96,16 @@
                             Продовжити покупки
                         </a>
                         {% if request.user.is_authenticated %}
-                            <a href="{% url 'order_create' %}" class="btn btn-primary btn-md sm:btn-lg w-full sm:w-auto order-1 sm:order-2 shadow-lg hover:shadow-xl transition-all">
+                            <a href="{% url 'order_create' %}" class="btn btn-secondary btn-md sm:btn-lg w-full sm:w-auto order-1 sm:order-2 shadow-lg hover:shadow-xl transition-all"
+                               style="background-color: #f89886; border-color: #f89886; color: white;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                                 Оформити замовлення
                             </a>
                         {% else %}
-                            <a href="{% url 'login' %}?next={% url 'order_create' %}" class="btn btn-primary btn-md sm:btn-lg w-full sm:w-auto order-1 sm:order-2 shadow-lg hover:shadow-xl transition-all">
+                            <a href="{% url 'login' %}?next={% url 'order_create' %}" class="btn btn-secondary btn-md sm:btn-lg w-full sm:w-auto order-1 sm:order-2 shadow-lg hover:shadow-xl transition-all"
+                               style="background-color: #f89886; border-color: #f89886; color: white;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
@@ -113,6 +115,64 @@
                     </div>
             </div>
         </div>
+        <div id="basket-scroll-cta" class="fixed inset-x-4 bottom-4 z-30 lg:hidden transition-all duration-300 ease-out">
+            <button type="button"
+                    class="btn w-full shadow-2xl border-0 gap-2 pointer-events-auto"
+                    style="background-color: #f89886; border-color: #f89886; color: white;"
+                    aria-label="Перейти до оформлення"
+                    onclick="const summary = document.getElementById('basket-summary'); if (summary) { summary.scrollIntoView({ behavior: 'smooth', block: 'center' }); summary.classList.add('animate-pulse'); setTimeout(() => summary.classList.remove('animate-pulse'), 1200); }">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="font-semibold">Оформити замовлення</span>
+            </button>
+        </div>
+        <script>
+            (function () {
+                const setupFloatingCTA = () => {
+                    const cta = document.getElementById("basket-scroll-cta");
+                    const summary = document.getElementById("basket-summary");
+                    if (!cta || !summary || !("IntersectionObserver" in window)) {
+                        return;
+                    }
+
+                    if (window._basketSummaryObserver) {
+                        window._basketSummaryObserver.disconnect();
+                    }
+
+                    window._basketSummaryObserver = new IntersectionObserver(
+                        (entries) => {
+                            entries.forEach((entry) => {
+                                if (entry.isIntersecting) {
+                                    cta.classList.add("opacity-0", "pointer-events-none", "translate-y-4");
+                                } else {
+                                    cta.classList.remove("opacity-0", "pointer-events-none", "translate-y-4");
+                                }
+                            });
+                        },
+                        {
+                            threshold: 0.3,
+                        }
+                    );
+
+                    window._basketSummaryObserver.observe(summary);
+                };
+
+                if (document.readyState === "complete" || document.readyState === "interactive") {
+                    setupFloatingCTA();
+                } else {
+                    document.addEventListener("DOMContentLoaded", setupFloatingCTA, { once: true });
+                }
+
+                if (window.htmx) {
+                    document.body.addEventListener("htmx:afterSwap", (event) => {
+                        if (event.target && event.target.id === "basket-content") {
+                            setupFloatingCTA();
+                        }
+                    });
+                }
+            })();
+        </script>
     {% else %}
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body text-center py-16">

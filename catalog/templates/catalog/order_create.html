@@ -193,39 +193,51 @@
             return;
         }
 
-        const fields = form.querySelectorAll("input, textarea, select");
+        const validateField = (field) => {
+            const fieldName = field.name || field.id;
+            const fieldType = field.type;
+            const value = field.value ? field.value.trim() : "";
 
-        const getValidationMessage = (field) => {
-            const validity = field.validity;
-            if (field.dataset.validationMessage) {
-                return field.dataset.validationMessage;
+            if (field.disabled || fieldName === "comment") {
+                return { isValid: true, message: "" };
             }
-            if (validity.valueMissing) {
-                return "Це поле обов'язкове для заповнення";
-            }
-            if (validity.typeMismatch) {
-                if (field.type === "email") {
-                    return "Введіть коректну email адресу";
+
+            if (fieldType === "radio") {
+                const radioGroup = form.querySelectorAll(`input[name="${field.name}"]`);
+                const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+                if (!isChecked) {
+                    return { isValid: false, message: "Будь ласка, оберіть спосіб оплати." };
                 }
-                if (field.type === "tel") {
-                    return "Введіть номер телефону у правильному форматі";
+                return { isValid: true, message: "" };
+            }
+
+            if (field.tagName === "SELECT") {
+                if (value === "" || value === null) {
+                    return { isValid: false, message: "Будь ласка, оберіть область." };
                 }
-                return "Введіть коректне значення";
+                return { isValid: true, message: "" };
             }
-            if (validity.patternMismatch) {
-                return "Формат значення некоректний";
+
+            if (field.required && value === "") {
+                return { isValid: false, message: "Це поле обов'язкове для заповнення." };
             }
-            if (validity.tooShort) {
-                return `Введіть щонайменше ${field.minLength} символів`;
+
+            if (fieldName === "delivery_phone" && value !== "") {
+                if (!/^\+380\d{9}$/.test(value)) {
+                    return { isValid: false, message: "Номер телефону повинен бути в форматі: +380XXXXXXXXX." };
+                }
             }
-            if (validity.tooLong) {
-                return `Введіть не більше ${field.maxLength} символів`;
+
+            if (fieldType === "email" && value !== "") {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    return { isValid: false, message: "Введіть коректну email адресу." };
+                }
             }
-            return "Будь ласка, перевірте правильність введених даних";
+
+            return { isValid: true, message: "" };
         };
 
         const clearError = (field) => {
-            field.setCustomValidity("");
             field.classList.remove("input-error");
             const container = field.closest(".form-control");
             if (!container) {
@@ -235,53 +247,139 @@
             if (feedback) {
                 feedback.remove();
             }
+            if (field.type === "radio") {
+                const radioContainer = field.closest(".form-control");
+                if (radioContainer) {
+                    const radioGroup = radioContainer.querySelector(".space-y-2");
+                    if (radioGroup) {
+                        radioGroup.classList.remove("input-error");
+                    }
+                }
+            }
         };
 
-        const showError = (field) => {
-            const validationMessage = getValidationMessage(field);
-            field.setCustomValidity(validationMessage);
+        const showError = (field, message) => {
             field.classList.add("input-error");
             const container = field.closest(".form-control");
             if (!container) {
                 return;
             }
+            
+            if (field.type === "radio") {
+                const radioGroup = container.querySelector(".space-y-2");
+                if (radioGroup) {
+                    radioGroup.classList.add("input-error");
+                }
+            }
+
             let feedback = container.querySelector(".validation-feedback");
             if (!feedback) {
                 feedback = document.createElement("span");
                 feedback.className = "label-text-alt text-error validation-feedback mt-1 block";
                 container.appendChild(feedback);
             }
-            feedback.textContent = validationMessage;
+            feedback.textContent = message;
         };
 
-        fields.forEach((field) => {
-            field.addEventListener("input", () => clearError(field));
-            field.addEventListener("change", () => clearError(field));
+        form.querySelectorAll("input, textarea, select").forEach((field) => {
+            field.addEventListener("input", () => {
+                if (field.type !== "radio") {
+                    clearError(field);
+                }
+            });
+            field.addEventListener("change", () => {
+                if (field.type === "radio") {
+                    // Clear all radio buttons in the group
+                    form.querySelectorAll(`input[name="${field.name}"]`).forEach(radio => {
+                        clearError(radio);
+                    });
+                } else {
+                    clearError(field);
+                }
+            });
         });
 
-        form.addEventListener("submit", (event) => {
-            const invalidFields = Array.from(fields).filter((field) => !field.checkValidity());
-            if (invalidFields.length === 0) {
-                return;
+        const scrollToFirstError = () => {
+            const firstErrorField = form.querySelector(".input-error, [class*='error']");
+            if (firstErrorField) {
+                const target = firstErrorField.closest(".form-control") ?? firstErrorField;
+                setTimeout(() => {
+                    target.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                        inline: "nearest",
+                    });
+                    if (firstErrorField.focus && typeof firstErrorField.focus === "function") {
+                        setTimeout(() => {
+                            firstErrorField.focus({ preventScroll: true });
+                        }, 300);
+                    }
+                }, 100);
             }
+        };
 
+        if (form.querySelector(".text-error, .alert-error")) {
+            scrollToFirstError();
+        }
+
+        form.addEventListener("submit", (event) => {
             event.preventDefault();
             event.stopPropagation();
 
-            invalidFields.forEach((field) => showError(field));
+            form.querySelectorAll(".input-error").forEach(el => el.classList.remove("input-error"));
+            form.querySelectorAll(".validation-feedback").forEach(el => el.remove());
 
-            const firstInvalid = invalidFields[0];
-            if (firstInvalid) {
-                const parentCard = firstInvalid.closest(".card-body");
-                if (parentCard) {
-                    parentCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            const invalidFields = [];
+            const fieldsToCheck = form.querySelectorAll("input, textarea, select");
+
+            fieldsToCheck.forEach((field) => {
+                if (field.type === "radio") {
+                    const radioGroup = form.querySelectorAll(`input[name="${field.name}"]`);
+                    if (field === radioGroup[0]) {
+                        const validation = validateField(field);
+                        if (!validation.isValid) {
+                            invalidFields.push({ field: radioGroup[0], message: validation.message });
+                        }
+                    }
                 } else {
-                    firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+                    const validation = validateField(field);
+                    if (!validation.isValid) {
+                        invalidFields.push({ field, message: validation.message });
+                    }
                 }
-                firstInvalid.focus({ preventScroll: true });
+            });
+
+            if (invalidFields.length === 0) {
+                form.submit();
+                return;
             }
+
+            invalidFields.forEach(({ field, message }) => {
+                showError(field, message);
+            });
+
+            const firstInvalid = invalidFields[0].field;
+            const target = firstInvalid.closest(".form-control") ?? firstInvalid;
+            
+            requestAnimationFrame(() => {
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                    inline: "nearest",
+                });
+                
+                setTimeout(() => {
+                    if (firstInvalid.type === "radio") {
+                        const radioGroup = form.querySelectorAll(`input[name="${firstInvalid.name}"]`);
+                        if (radioGroup[0]) {
+                            radioGroup[0].focus({ preventScroll: true });
+                        }
+                    } else {
+                        firstInvalid.focus({ preventScroll: true });
+                    }
+                }, 300);
+            });
         });
     });
 </script>
 {% endblock %}
-

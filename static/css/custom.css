@@ -272,6 +272,15 @@ textarea.input-error {
   box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2) !important;
 }
 
+/* Radio button group error styling */
+.form-control .space-y-2.input-error {
+  border: 2px solid #f87171 !important;
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem !important;
+  background-color: rgba(248, 113, 113, 0.05) !important;
+}
+
 /* Card improvements */
 .card {
   border-radius: 16px !important;

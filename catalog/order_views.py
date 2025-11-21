@@ -371,7 +371,6 @@ def order_create(request: HttpRequest) -> HttpResponse:
                             ),
                         )
 
-                    # Send email to customer with order details and payment link
                     try:
                         send_customer_order_created_email(order, request)
                     except Exception as e:
@@ -380,7 +379,6 @@ def order_create(request: HttpRequest) -> HttpResponse:
                             extra={"order_id": order.id, "error": str(e)},
                             exc_info=True,
                         )
-                        # Don't fail the order creation if email fails
                         messages.warning(
                             request,
                             "Замовлення створено, але не вдалося надіслати повідомлення на email.",
