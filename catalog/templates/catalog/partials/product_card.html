@@ -72,7 +72,22 @@
                         hx-swap="none"
                         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                         hx-trigger="click"
-                        hx-on::after-request="if (event.detail.xhr.status === 200) { window.dispatchEvent(new CustomEvent('basket-updated')); }"
+                        hx-on::after-request="
+                            const triggerHeader = event.detail.xhr.getResponseHeader('HX-Trigger');
+                            if (triggerHeader) {
+                                try {
+                                    const triggerPayload = JSON.parse(triggerHeader);
+                                    const showToast = triggerPayload['show-toast'];
+                                    if (showToast && showToast.type === 'warning') {
+                                        return;
+                                    }
+                                } catch (err) {
+                                    console.error('HX-Trigger parse error', err);
+                                }
+                            }
+                            if (event.detail.xhr.status === 200) {
+                                window.dispatchEvent(new CustomEvent('basket-updated'));
+                            }"
                         {% else %}
                         disabled
                         {% endif %}

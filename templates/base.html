@@ -74,7 +74,7 @@
                              class="relative h-10 md:h-12 w-auto object-contain flex-shrink-0 drop-shadow-md group-hover:scale-105 group-hover:drop-shadow-lg transition-all duration-300 transform">
                     </div>
                     <span class="hidden md:inline text-base md:text-lg leading-relaxed">
-                        <span style="color: #f89886;" class="font-normal italic">— магазин, де ви можете знайти відповідь на питання "Шо?"</span>
+                        <span style="color: #f89886;" class="font-normal italic">— магазин, де ви можете знайти відповідь на питання "Ma, шо?"</span>
                     </span>
                 </a>
             </h1>
@@ -83,9 +83,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <span class="badge badge-error badge-sm absolute -top-2 -right-2" id="basket-count">
+                    {% if basket|length > 0 %}
+                    <span class="badge badge-sm absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold" 
+                          style="background-color: #4fc0b5; border-color: #4fc0b5; color: white;" 
+                          id="basket-count">
                         {{ basket|length }}
                     </span>
+                    {% endif %}
                 </a>
                 {% if request.user.is_authenticated %}
                     <a href="{% url 'order_list' %}" class="btn btn-sm btn-outline">

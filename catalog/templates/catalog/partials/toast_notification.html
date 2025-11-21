@@ -7,13 +7,28 @@
          x-cloak
         @htmx:after-request.window="
            if (event.detail && event.detail.xhr) {
-               const status = event.detail.xhr.status;
+               const xhr = event.detail.xhr;
+               const status = xhr.status;
+               const triggerHeader = xhr.getResponseHeader('HX-Trigger');
+               if (triggerHeader) {
+                   try {
+                       const triggerPayload = JSON.parse(triggerHeader);
+                       const showToast = triggerPayload['show-toast'];
+                       if (showToast) {
+                           // Let HX-Trigger fire @show-toast listener, but prevent success duplicate
+                           return;
+                       }
+                   } catch (error) {
+                       console.error('HX-Trigger parse error', error);
+                   }
+               }
                const pathInfo = event.detail.pathInfo;
                const path =
                    (typeof pathInfo === 'string' ? pathInfo : pathInfo?.requestPath) ||
                    event.detail.requestConfig?.path ||
                    event.detail.elt?.getAttribute('hx-post') ||
                    '';
+
                if (status === 200 && path.includes('basket/add')) {
                    toastMessage = 'Товар успішно додано до кошика!';
                    toastType = 'success';
@@ -47,14 +62,30 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-x-0"
              x-transition:leave-end="opacity-0 translate-x-full"
-            class="alert shadow-lg max-w-sm pointer-events-auto border border-blue-200"
+            class="alert shadow-lg max-w-sm pointer-events-auto border"
              :class="{
-                'bg-blue-500/95 text-white border-blue-400 shadow-blue-200/60': toastType === 'success',
+                'bg-[#38b2a5] text-white border-[#38b2a5] shadow-[0_10px_30px_rgba(56,178,165,0.35)] cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2a8f83]': showBasketButton && toastType === 'success',
+                'bg-[#38b2a5] text-white border-[#38b2a5] shadow-[0_10px_30px_rgba(56,178,165,0.35)]': !showBasketButton && toastType === 'success',
+                'bg-amber-500/95 text-white border-amber-400 shadow-[0_10px_30px_rgba(251,191,36,0.4)]': toastType === 'warning',
                 'bg-rose-500/95 text-white border-rose-400 shadow-rose-200/60': toastType === 'error',
                 'bg-sky-500/95 text-white border-sky-400 shadow-sky-200/60': toastType === 'info'
              }"
-             style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+             style="display: none;"
+             role="alert"
+             @click="if (showBasketButton) { window.location.href = '{% url 'basket_detail' %}'; }"
+             :tabindex="showBasketButton ? 0 : -1">
+            <svg x-show="toastType === 'warning'"
+                 xmlns="http://www.w3.org/2000/svg"
+                 class="stroke-current shrink-0 h-6 w-6"
+                 fill="none"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <svg x-show="toastType !== 'warning'"
+                 xmlns="http://www.w3.org/2000/svg"
+                 class="stroke-current shrink-0 h-6 w-6"
+                 fill="none"
+                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div class="flex-1 flex items-center justify-between gap-3">

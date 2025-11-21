@@ -1,3 +1,12 @@
-<span id="basket-count" class="badge badge-error badge-sm absolute -top-2 -right-2" hx-swap-oob="true">
-    {{ basket|length }}
-</span>
+<div class="hidden" aria-hidden="true">
+    {% if basket|length > 0 %}
+    <span id="basket-count" 
+          class="badge badge-sm absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold" 
+          style="background-color: #4fc0b5; border-color: #4fc0b5; color: white;" 
+          hx-swap-oob="true">
+        {{ basket|length }}
+    </span>
+    {% else %}
+    <span id="basket-count" hx-swap-oob="true" style="display: none;"></span>
+    {% endif %}
+</div>

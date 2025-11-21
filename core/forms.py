@@ -13,21 +13,36 @@ class SignupForm(UserCreationForm):
         self.fields["username"].widget.attrs.update(
             {
                 "class": DAISY_INPUT,
-                "placeholder": "Your username",
+                "placeholder": "Ваш логін",
             }
+        )
+        self.fields["username"].label = "Ім'я користувача"
+        self.fields[
+            "username"
+        ].help_text = (
+            "До 150 символів. Використовуйте лише літери, цифри та символи @/./+/-/_"
         )
         self.fields["password1"].widget.attrs.update(
             {
                 "class": DAISY_PASSWORD,
-                "placeholder": "Create password",
+                "placeholder": "Створіть пароль",
             }
+        )
+        self.fields["password1"].label = "Пароль"
+        self.fields["password1"].help_text = (
+            "Пароль має містити щонайменше 8 символів, не бути занадто схожим "
+            "на особисту інформацію, не бути поширеним або повністю цифровим."
         )
         self.fields["password2"].widget.attrs.update(
             {
                 "class": DAISY_PASSWORD,
-                "placeholder": "Confirm password",
+                "placeholder": "Підтвердіть пароль",
             }
         )
+        self.fields["password2"].label = "Підтвердити пароль"
+        self.fields[
+            "password2"
+        ].help_text = "Введіть той самий пароль ще раз для підтвердження."
 
 
 class LoginForm(AuthenticationForm):
@@ -36,13 +51,15 @@ class LoginForm(AuthenticationForm):
         self.fields["username"].widget.attrs.update(
             {
                 "class": DAISY_INPUT,
-                "placeholder": "Username",
+                "placeholder": "Ім'я користувача",
                 "autofocus": True,
             }
         )
+        self.fields["username"].label = "Ім'я користувача"
         self.fields["password"].widget.attrs.update(
             {
                 "class": DAISY_PASSWORD,
-                "placeholder": "Password",
+                "placeholder": "Пароль",
             }
         )
+        self.fields["password"].label = "Пароль"

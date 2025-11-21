@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 
 from django.http import HttpRequest, HttpResponse
@@ -50,37 +51,41 @@ def basket_add(request: HttpRequest, product_id: int) -> HttpResponse:
         basket_quantity = basket.basket.get(str(product.id), 0)
 
     if basket_quantity + quantity > product.stock:
-        allowed_to_add = max(0, product.stock - basket_quantity)
-        if allowed_to_add == 0:
-            user_id = request.user.id if request.user.is_authenticated else None
-            logger.info(
-                "Basket add blocked: insufficient stock",
-                extra={
-                    "product_id": product_id,
-                    "user_id": user_id,
-                    "requested": quantity,
-                    "available_to_add": allowed_to_add,
-                },
-            )
-            if is_htmx:
-                return render(
-                    request,
-                    "catalog/partials/basket_count.html",
-                    {"basket": basket},
-                )
-            return redirect("product_detail", pk=product_id)
-
         user_id = request.user.id if request.user.is_authenticated else None
         logger.info(
-            "Basket add limited by stock",
+            "Basket add blocked: insufficient stock",
             extra={
                 "product_id": product_id,
                 "user_id": user_id,
                 "requested": quantity,
-                "added": allowed_to_add,
+                "available": product.stock - basket_quantity,
             },
         )
-        quantity = allowed_to_add
+        if product.stock <= 0:
+            warning_message = "Товар закінчився на складі."
+        elif basket_quantity >= product.stock:
+            warning_message = "Ви вже додали максимальну кількість цього товару."
+        else:
+            remaining = product.stock - basket_quantity
+            warning_message = f"На складі доступно лише {remaining} шт. цього товару."
+
+        if is_htmx:
+            response = render(
+                request,
+                "catalog/partials/basket_count.html",
+                {"basket": basket},
+            )
+            response["HX-Trigger"] = json.dumps(
+                {
+                    "show-toast": {
+                        "message": warning_message,
+                        "type": "warning",
+                        "showBasketButton": False,
+                    }
+                }
+            )
+            return response
+        return redirect("product_detail", pk=product_id)
 
     if quantity > 0:
         basket.add(product, quantity=quantity, update_quantity=False)
@@ -144,10 +149,20 @@ def basket_update(request: HttpRequest, product_id: int) -> HttpResponse:
     except (ValueError, TypeError):
         quantity = 1
 
+    warning_message = None
+    allow_update = True
+
     if quantity > product.stock:
+        allow_update = False
+        if product.stock > 0:
+            warning_message = (
+                f"На складі доступно лише {product.stock} шт. цього товару."
+            )
+        else:
+            warning_message = "На складі не залишилось цього товару."
         user_id = request.user.id if request.user.is_authenticated else None
         logger.info(
-            "Basket update limited by stock",
+            "Basket update blocked: insufficient stock",
             extra={
                 "product_id": product_id,
                 "user_id": user_id,
@@ -155,10 +170,9 @@ def basket_update(request: HttpRequest, product_id: int) -> HttpResponse:
                 "stock": product.stock,
             },
         )
-        quantity = product.stock
 
     user_id = request.user.id if request.user.is_authenticated else None
-    if quantity > 0:
+    if allow_update and quantity > 0:
         basket.add(product, quantity=quantity, update_quantity=True)
         logger.info(
             "Basket quantity updated",
@@ -168,7 +182,7 @@ def basket_update(request: HttpRequest, product_id: int) -> HttpResponse:
                 "quantity": quantity,
             },
         )
-    else:
+    elif allow_update:
         basket.remove(product)
         logger.info(
             "Product removed from basket due to zero quantity",
@@ -179,9 +193,20 @@ def basket_update(request: HttpRequest, product_id: int) -> HttpResponse:
         )
 
     if request.headers.get("HX-Request") == "true":
-        return render(
+        response = render(
             request, "catalog/partials/basket_content.html", {"basket": basket}
         )
+        if warning_message:
+            response["HX-Trigger"] = json.dumps(
+                {
+                    "show-toast": {
+                        "message": warning_message,
+                        "type": "warning",
+                        "showBasketButton": False,
+                    }
+                }
+            )
+        return response
 
     if request.user.is_authenticated:
         return redirect("basket_detail")

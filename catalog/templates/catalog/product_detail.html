@@ -348,14 +348,57 @@
                 <div class="mt-6 pt-6 border-t border-base-300">
                     <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     {% if product.available and product.stock > 0 %}
-                        <form method="post" action="{% url 'basket_add' product_id=product.pk %}" class="flex-1 w-full sm:w-auto" id="add-to-basket-form">
+                        <form method="post"
+                              action="{% url 'basket_add' product_id=product.pk %}"
+                              class="flex-1 w-full sm:w-auto"
+                              id="add-to-basket-form"
+                              x-data="{
+                                  quantity: 1,
+                                  normalize(value) {
+                                      const parsed = parseInt(value, 10);
+                                      return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
+                                  },
+                                  update(value) {
+                                      this.quantity = this.normalize(value);
+                                      this.$refs.quantityInput.value = this.quantity;
+                                  },
+                                  change(delta) {
+                                      this.update(this.quantity + delta);
+                                  }
+                              }">
                         {% csrf_token %}
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
-                                <label class="label flex-shrink-0">
-                                    <span class="label-text mr-2 whitespace-nowrap">Кількість:</span>
-                                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" 
-                                           class="input input-bordered w-20 flex-shrink-0" id="quantity-input">
-                            </label>
+                                <div class="flex items-center gap-3">
+                                    <label for="quantity-input" class="label-text whitespace-nowrap font-semibold">
+                                        Кількість:
+                                    </label>
+                                    <div class="flex items-center gap-2 bg-base-200 rounded-lg px-2 py-1 shadow-sm pointer-events-auto">
+                                        <button type="button"
+                                                class="btn btn-ghost btn-xs px-2"
+                                                aria-label="Зменшити кількість"
+                                                @click.prevent="change(-1)">
+                                            −
+                                        </button>
+                                    <input type="number"
+                                           name="quantity"
+                                           value="1"
+                                           min="1"
+                                               x-ref="quantityInput"
+                                               x-model.number="quantity"
+                                               @input="update($event.target.value)"
+                                               inputmode="numeric"
+                                               pattern="[0-9]*"
+                                               autocomplete="off"
+                                               class="input input-bordered w-20 text-center font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f89886] pointer-events-auto"
+                                               id="quantity-input">
+                                        <button type="button"
+                                                class="btn btn-ghost btn-xs px-2"
+                                                aria-label="Збільшити кількість"
+                                                @click.prevent="change(1)">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
                             <button type="button" 
                                         class="btn btn-primary flex-1 sm:flex-none whitespace-nowrap"
                                     hx-post="{% url 'basket_add' product_id=product.pk %}"
@@ -363,7 +406,26 @@
                                     hx-target="body"
                                     hx-swap="none"
                                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                                    hx-on::after-request="this.textContent = 'Додано!'; setTimeout(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'h-5 w-5 mr-2\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\' /></svg>Додати в кошик'; }, 1000);">
+                                    hx-on::after-request="
+                                        const triggerHeader = event.detail.xhr.getResponseHeader('HX-Trigger');
+                                        if (triggerHeader) {
+                                            try {
+                                                const triggerPayload = JSON.parse(triggerHeader);
+                                                const showToast = triggerPayload['show-toast'];
+                                                if (showToast && showToast.type === 'warning') {
+                                                    return;
+                                                }
+                                            } catch (err) {
+                                                console.error('HX-Trigger parse error', err);
+                                            }
+                                        }
+                                        if (event.detail.xhr.status === 200) {
+                                            this.textContent = 'Додано!';
+                                            setTimeout(() => {
+                                                this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'h-5 w-5 mr-2\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\' /></svg>Додати в кошик';
+                                            }, 1000);
+                                        }
+                                    ">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
