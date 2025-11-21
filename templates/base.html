@@ -47,6 +47,20 @@
         gtag('config', 'G-BMQK23435V');
     </script>
     
+    {# Structured data for organization/logo #}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "url": "{{ site_url }}",
+        "name": "{{ site_name }}",
+        "logo": "{{ site_url }}{% static 'images/logo.png' %}",
+        "sameAs": [
+            "https://www.instagram.com/mamasho.shop?igsh=MWNpMnd3c3Btc3k2bg%3D%3D&utm_source=qr"
+        ]
+    }
+    </script>
+    
     {# Favicon #}
     <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}" class="rounded-lg">
     <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">

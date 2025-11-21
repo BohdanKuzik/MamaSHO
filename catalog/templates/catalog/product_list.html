@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
-{% block title %}Каталог товарів - {{ site_name }}{% endblock %}
+{% block title %}{{ site_name }} - Дитячий одяг{% endblock %}
 {% block meta_description %}Перегляньте наш каталог дитячих товарів. Широкий вибір якісних товарів для дітей різного віку. {{ default_description }}{% endblock %}
 {% block canonical_url %}{{ site_url }}{% url 'product_list' %}{% endblock %}
-{% block og_title %}Каталог товарів - {{ site_name }}{% endblock %}
+{% block og_title %}{{ site_name }} - Дитячий одяг{% endblock %}
 {% block og_description %}Перегляньте наш каталог дитячих товарів. Широкий вибір якісних товарів для дітей різного віку.{% endblock %}
 
 {% block content %}
@@ -71,7 +71,7 @@
     {
         "@context": "https://schema.org/",
         "@type": "CollectionPage",
-        "name": "Каталог товарів - {{ site_name }}",
+        "name": "Дитячий одяг - {{ site_name }}",
         "description": "Перегляньте наш каталог дитячих товарів",
         "url": "{{ site_url }}{% url 'product_list' %}"
     }
