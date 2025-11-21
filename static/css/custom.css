@@ -264,6 +264,14 @@ h3[style*="color: #f89886"] {
   transition: all 0.3s ease !important;
 }
 
+.input-error,
+input.input-error,
+select.input-error,
+textarea.input-error {
+  border-color: #f87171 !important;
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2) !important;
+}
+
 /* Card improvements */
 .card {
   border-radius: 16px !important;

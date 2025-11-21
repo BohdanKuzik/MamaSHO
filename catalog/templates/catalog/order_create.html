@@ -82,6 +82,11 @@
                                 <span class="label-text">{{ form.delivery_address.label }}</span>
                             </label>
                             {{ form.delivery_address }}
+                            <label class="label">
+                                <span class="label-text-alt text-base-content/60">
+                                    Вкажіть точну адресу доставки або номер відділення Нової пошти
+                                </span>
+                            </label>
                             {% if form.delivery_address.errors %}
                                 <label class="label">
                                     <span class="label-text-alt text-error">{{ form.delivery_address.errors }}</span>
@@ -188,24 +193,85 @@
             return;
         }
 
-        const inputs = form.querySelectorAll("input, textarea, select");
-        inputs.forEach((input) => {
-            input.addEventListener("input", () => {
-                input.classList.remove("input-error");
-            });
+        const fields = form.querySelectorAll("input, textarea, select");
+
+        const getValidationMessage = (field) => {
+            const validity = field.validity;
+            if (field.dataset.validationMessage) {
+                return field.dataset.validationMessage;
+            }
+            if (validity.valueMissing) {
+                return "Це поле обов'язкове для заповнення";
+            }
+            if (validity.typeMismatch) {
+                if (field.type === "email") {
+                    return "Введіть коректну email адресу";
+                }
+                if (field.type === "tel") {
+                    return "Введіть номер телефону у правильному форматі";
+                }
+                return "Введіть коректне значення";
+            }
+            if (validity.patternMismatch) {
+                return "Формат значення некоректний";
+            }
+            if (validity.tooShort) {
+                return `Введіть щонайменше ${field.minLength} символів`;
+            }
+            if (validity.tooLong) {
+                return `Введіть не більше ${field.maxLength} символів`;
+            }
+            return "Будь ласка, перевірте правильність введених даних";
+        };
+
+        const clearError = (field) => {
+            field.setCustomValidity("");
+            field.classList.remove("input-error");
+            const container = field.closest(".form-control");
+            if (!container) {
+                return;
+            }
+            const feedback = container.querySelector(".validation-feedback");
+            if (feedback) {
+                feedback.remove();
+            }
+        };
+
+        const showError = (field) => {
+            const validationMessage = getValidationMessage(field);
+            field.setCustomValidity(validationMessage);
+            field.classList.add("input-error");
+            const container = field.closest(".form-control");
+            if (!container) {
+                return;
+            }
+            let feedback = container.querySelector(".validation-feedback");
+            if (!feedback) {
+                feedback = document.createElement("span");
+                feedback.className = "label-text-alt text-error validation-feedback mt-1 block";
+                container.appendChild(feedback);
+            }
+            feedback.textContent = validationMessage;
+        };
+
+        fields.forEach((field) => {
+            field.addEventListener("input", () => clearError(field));
+            field.addEventListener("change", () => clearError(field));
         });
 
         form.addEventListener("submit", (event) => {
-            if (form.checkValidity()) {
+            const invalidFields = Array.from(fields).filter((field) => !field.checkValidity());
+            if (invalidFields.length === 0) {
                 return;
             }
 
             event.preventDefault();
             event.stopPropagation();
 
-            const firstInvalid = form.querySelector(":invalid");
+            invalidFields.forEach((field) => showError(field));
+
+            const firstInvalid = invalidFields[0];
             if (firstInvalid) {
-                firstInvalid.classList.add("input-error");
                 const parentCard = firstInvalid.closest(".card-body");
                 if (parentCard) {
                     parentCard.scrollIntoView({ behavior: "smooth", block: "start" });

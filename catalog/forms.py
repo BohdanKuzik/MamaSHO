@@ -80,7 +80,7 @@ class OrderForm(forms.ModelForm):
         ),
     )
     delivery_address = forms.CharField(
-        label="Адреса доставки",
+        label="Адреса доставки або номер відділення Нової пошти",
         required=True,
         widget=forms.Textarea(
             attrs={
