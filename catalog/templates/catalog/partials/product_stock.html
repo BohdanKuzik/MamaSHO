@@ -1,0 +1,6 @@
+<div id="product-stock-display" 
+     class="stat-value text-2xl {% if available_stock < 5 %}text-error{% else %}text-info{% endif %}"
+     hx-swap-oob="true">
+    {{ available_stock }} од.
+</div>
+

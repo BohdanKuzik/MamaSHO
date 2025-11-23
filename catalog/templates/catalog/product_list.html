@@ -9,7 +9,7 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8"
      x-data="{
-        filterKeys: ['category', 'min_price', 'max_price', 'available', 'search'],
+        filterKeys: ['category', 'min_price', 'max_price', 'available', 'search', 'sort'],
         showScrollTop: false,
         
         init() {
@@ -29,6 +29,7 @@
         max_price: '',
         available: false,
         search: '',
+        sort: '',
         
         showFilters: false,
         
@@ -90,7 +91,7 @@
                     hx-get="{% url 'product_filter' %}"
                     hx-target="#search-results"
                     hx-trigger="click"
-                    hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
+                    hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
                     class="btn btn-sm btn-outline flex-shrink-0 gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -119,102 +120,185 @@
             {% endif %}
         </div>
     </div>
-    <div class="stats stats-vertical sm:stats-horizontal shadow mb-8 w-full max-w-full overflow-hidden">
-        <div class="stat min-w-0">
-            <div class="stat-title">
-                <div class="flex items-center gap-2">
-                    <span>Пошук товарів</span>
+    <div class="card bg-base-100 shadow-md mb-6">
+        <div class="card-body p-4 sm:p-6">
+            <input type="hidden" name="category" x-model="category">
+            <input type="hidden" name="min_price" x-model="min_price">
+            <input type="hidden" name="max_price" x-model="max_price">
+            <input type="hidden" name="available" x-model="available">
+            <input type="hidden" name="search" x-model="search">
+            <input type="hidden" name="sort" x-model="sort">
+            
+            <div class="flex flex-col gap-4">
+                <!-- Search Row -->
+                <div class="flex flex-col gap-3">
+                    <label class="input input-bordered flex items-center gap-2 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-70" style="color: #f89886;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input type="search"
+                               name="search"
+                               placeholder="Пошук товарів..."
+                               class="grow min-w-0"
+                               x-model="search"
+                               hx-get="{% url 'product_filter' %}"
+                               hx-trigger="input changed delay:500ms"
+                               hx-target="#search-results"
+                               hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                               @input="updateURL()">
+                    </label>
+                </div>
+                
+                <!-- Collapsible Filters -->
+                <div class="collapse collapse-arrow bg-base-200 rounded-lg" :class="{'collapse-open': showFilters}">
+                    <input type="checkbox" x-model="showFilters" />
+                    <div class="collapse-title text-sm font-medium py-2 min-h-0 px-4">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-70" style="color: #f89886;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-.553.894l-4 2A1 1 0 019 21v-8.586L3.293 6.707A1 1 0 013 6V4z" />
+                            </svg>
+                            <span>Фільтри</span>
+                        </div>
+                    </div>
+                    <div class="collapse-content">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text text-xs font-semibold">Категорія</span>
+                                </label>
+                                <select x-model="category"
+                                        hx-get="{% url 'product_filter' %}"
+                                        hx-trigger="change"
+                                        hx-target="#search-results"
+                                        hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                                        @change="updateURL()"
+                                        class="select select-bordered select-sm w-full">
+                                    <option value="">Всі категорії</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.pk }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text text-xs font-semibold">Мін. ціна (₴)</span>
+                                </label>
+                                <input type="number"
+                                       name="min_price"
+                                       min="0"
+                                       placeholder="Від"
+                                       hx-get="{% url 'product_filter' %}"
+                                       x-model="min_price"
+                                       hx-target="#search-results"
+                                       hx-trigger="input changed delay:500ms"
+                                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                                       @input="updateURL()"
+                                       step="100"
+                                       class="input input-bordered input-sm w-full">
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text text-xs font-semibold">Макс. ціна (₴)</span>
+                                </label>
+                                <input type="number"
+                                       name="max_price"
+                                       min="0"
+                                       placeholder="До"
+                                       hx-get="{% url 'product_filter' %}"
+                                       x-model="max_price"
+                                       hx-target="#search-results"
+                                       hx-trigger="input changed delay:500ms"
+                                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                                       @input="updateURL()"
+                                       step="100"
+                                       class="input input-bordered input-sm w-full">
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text text-xs font-semibold">Доступність</span>
+                                </label>
+                                <label class="label cursor-pointer justify-start gap-2 pt-2">
+                                    <input type="checkbox"
+                                           hx-get="{% url 'product_filter' %}"
+                                           hx-target="#search-results"
+                                           hx-trigger="change"
+                                           x-model="available"
+                                           hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                                           @change="updateURL()"
+                                           class="checkbox checkbox-primary checkbox-sm">
+                                    <span class="label-text text-xs">Тільки доступні</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product Count -->
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #f89886;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <span class="text-base-content/70">Знайдено товарів:</span>
+                        <span class="font-bold" style="color: #f89886;" id="total-count">{{ amount }}</span>
+                    </div>
                 </div>
             </div>
-            <div class="stat-value py-2">
-                <label class="input input-bordered input-primary flex items-center gap-2 w-full max-w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" style="color: #f89886;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input type="search"
-                           name="search"
-                           placeholder="Пошук товарів..."
-                           class="grow min-w-0"
-                           x-model="search"
-                           hx-get="{% url 'product_filter' %}"
-                           hx-trigger="input changed delay:500ms"
-                           hx-target="#search-results"
-                           hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                           @input="updateURL()">
-                </label>
-            </div>
         </div>
-        <div class="stat" x-cloak x-show="showFilters" x-transition>
-            <div class="stat-title">Фільтри</div>
-            <div class="stat-value py-2 flex flex-col gap-2">
-                <input type="hidden" name="category" x-model="category">
-                <input type="hidden" name="min_price" x-model="min_price">
-                <input type="hidden" name="max_price" x-model="max_price">
-                <input type="hidden" name="available" x-model="available">
-                <input type="hidden" name="search" x-model="search">
-
-                <select x-model="category"
-                        hx-get="{% url 'product_filter' %}"
-                        hx-trigger="change"
-                        hx-target="#search-results"
-                        hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                        @change="updateURL()"
-                        class="select select-bordered select-sm">
-                    <option value="">Всі категорії</option>
-                    {% for category in categories %}
-                        <option value="{{ category.pk }}">{{ category.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <label class="label cursor-pointer gap-2">
-                <span class="label-text">Мін. ціна: ₴</span>
-                <input type="number"
-                       min="0"
-                       placeholder="Мін. ціна"
-                       hx-get="{% url 'product_filter' %}"
-                       x-model="min_price"
-                       hx-target="#search-results"
-                       hx-trigger="input changed delay:500ms"
-                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                       @input="updateURL()"
-                       step="100"
-                       class="input input-bordered input-sm w-32">
-            </label>
-            <label class="label cursor-pointer gap-2">
-                <span class="label-text">Макс. ціна: ₴</span>
-                <input type="number"
-                       min="0"
-                       placeholder="Макс. ціна"
-                       hx-get="{% url 'product_filter' %}"
-                       x-model="max_price"
-                       hx-target="#search-results"
-                       hx-trigger="input changed delay:500ms"
-                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                       @input="updateURL()"
-                       step="100"
-                       class="input input-bordered input-sm w-32">
-            </label>
-            <label class="label cursor-pointer gap-2">
-                <span class="label-text">Тільки доступні</span>
-                <input type="checkbox"
-                       hx-get="{% url 'product_filter' %}"
-                       hx-target="#search-results"
-                       hx-trigger="change"
-                       x-model="available"
-                       hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search']"
-                       @change="updateURL()"
-                       class="checkbox checkbox-primary">
-            </label>
-        </div>
-        <div class="stat">
-            <div class="stat-figure" style="color: #f89886;">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </div>
+    
+    <!-- Sorting Options -->
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+        <span class="text-sm font-semibold text-base-content/70">Сортування:</span>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button"
+                    @click="sort = (sort === 'newest') ? 'oldest' : 'newest'; $nextTick(() => updateURL())"
+                    :class="sort === 'newest' || sort === 'oldest' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost'"
+                    hx-get="{% url 'product_filter' %}"
+                    hx-trigger="click"
+                    hx-target="#search-results"
+                    hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                    class="gap-1">
+                <span>Найновіші</span>
+                <svg x-show="sort === 'newest'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                 </svg>
-            </div>
-            <div class="stat-title">Всього товарів</div>
-            <div class="stat-value" style="color: #f89886;" id="total-count">{{ amount }}</div>
-            <div class="stat-desc">У нашому каталозі</div>
+                <svg x-show="sort === 'oldest'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button type="button"
+                    @click="sort = (sort === 'price_asc') ? 'price_desc' : 'price_asc'; $nextTick(() => updateURL())"
+                    :class="sort === 'price_asc' || sort === 'price_desc' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost'"
+                    hx-get="{% url 'product_filter' %}"
+                    hx-trigger="click"
+                    hx-target="#search-results"
+                    hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                    class="gap-1">
+                <span>Ціна</span>
+                <svg x-show="sort === 'price_asc'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+                <svg x-show="sort === 'price_desc'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <button type="button"
+                    x-show="sort !== ''"
+                    @click="sort = ''; $nextTick(() => updateURL())"
+                    hx-get="{% url 'product_filter' %}"
+                    hx-trigger="click"
+                    hx-target="#search-results"
+                    hx-include="[name='category'], [name='min_price'], [name='max_price'], [name='available'], [name='search'], [name='sort']"
+                    class="btn btn-sm btn-ghost btn-circle p-1.5"
+                    title="Очистити сортування">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
     </div>
     {% if products %}
@@ -230,7 +314,7 @@
                  hx-trigger="revealed"
                  hx-target="#search-results"
                  hx-swap="beforeend"
-                 hx-include="input[name='category'], input[name='min_price'], input[name='max_price'], input[name='available'], input[name='search']"
+                 hx-include="input[name='category'], input[name='min_price'], input[name='max_price'], input[name='available'], input[name='search'], input[name='sort']"
                  class="text-center p-8">
                 <span class="loading loading-spinner loading-lg"></span>
             </div>

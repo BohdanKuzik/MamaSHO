@@ -19,10 +19,40 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
+from sorl.thumbnail import get_thumbnail
 
 from catalog.forms import CreateProductForm, UpdateProductForm
-from catalog.models import Category, Product, ProductImage
-from sorl.thumbnail import get_thumbnail
+from catalog.models import Category, Product, ProductImage, ProductReservation
+
+
+def get_available_products(
+    products: QuerySet[Product], request: HttpRequest
+) -> QuerySet[Product]:
+    """Filter out products that are fully reserved (no available stock)"""
+    ProductReservation.cleanup_expired()  # Clean up expired first
+
+    from django.db.models import Sum
+    from django.utils import timezone
+
+    active_reservations = (
+        ProductReservation.objects.filter(expires_at__gt=timezone.now())
+        .values("product_id")
+        .annotate(total_reserved=Sum("quantity"))
+    )
+
+    reserved_dict = {r["product_id"]: r["total_reserved"] for r in active_reservations}
+
+    available_product_ids = []
+    for product in products:
+        reserved = reserved_dict.get(product.id, 0)
+        if product.stock > reserved:
+            available_product_ids.append(product.id)
+
+    return (
+        products.filter(id__in=available_product_ids)
+        if available_product_ids
+        else products.none()
+    )
 
 
 def apply_product_filters(
@@ -83,6 +113,18 @@ def apply_product_filters(
         else:
             products = products.none()
 
+    sort_by = request.GET.get("sort", "").strip()
+    if sort_by == "price_asc":
+        products = products.order_by("price")
+    elif sort_by == "price_desc":
+        products = products.order_by("-price")
+    elif sort_by == "newest":
+        products = products.order_by("-created_at")
+    elif sort_by == "oldest":
+        products = products.order_by("created_at")
+    else:
+        products = products.order_by("-created_at")
+
     return products.distinct()
 
 
@@ -93,7 +135,8 @@ class ProductListView(ListView):
     paginate_by = 15
 
     def get_queryset(self: "ProductListView") -> QuerySet[Product]:
-        products = Product.objects.all()
+        products = Product.objects.filter(available=True)
+        products = get_available_products(products, self.request)
         return apply_product_filters(products, self.request)
 
     def get_context_data(
@@ -113,7 +156,8 @@ def product_filter_view(request: HttpRequest) -> Optional[HttpResponse]:
     if not is_htmx:
         return None
 
-    products = Product.objects.all()
+    products = Product.objects.filter(available=True)
+    products = get_available_products(products, request)
     products = apply_product_filters(products, request)
     amount_after_filter = products.count()
 
@@ -136,6 +180,35 @@ class ProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         product: Product = self.object
         request = self.request
+
+        from catalog.basket_views import get_basket as get_basket_func
+
+        ProductReservation.cleanup_expired()  # Clean up expired first
+        basket = get_basket_func(request)
+        if request.user.is_authenticated:
+            existing_item = basket.basket.items.filter(product=product).first()
+            basket_quantity = existing_item.quantity if existing_item else 0
+        else:
+            basket_quantity = basket.basket.get(str(product.id), 0)
+
+        reserved_quantity = ProductReservation.get_reserved_quantity(product)
+        if request.user.is_authenticated:
+            user_reservation = ProductReservation.objects.filter(
+                product=product, user=request.user
+            ).first()
+            if user_reservation:
+                reserved_quantity -= user_reservation.quantity
+        else:
+            session_key = request.session.session_key
+            if session_key:
+                user_reservation = ProductReservation.objects.filter(
+                    product=product, session_key=session_key
+                ).first()
+                if user_reservation:
+                    reserved_quantity -= user_reservation.quantity
+
+        available_stock = product.stock - basket_quantity - max(0, reserved_quantity)
+        context["available_stock"] = available_stock
 
         gallery_images: list[Dict[str, object]] = []
 
@@ -361,8 +434,8 @@ def product_delete_view(request: HttpRequest, pk: int) -> Optional[HttpResponse]
 
 def pagination_cards_view(request: HttpRequest) -> HttpResponse:
     page_number = request.GET.get("page")
-    product_list = Product.objects.all()
-
+    product_list = Product.objects.filter(available=True)
+    product_list = get_available_products(product_list, request)
     product_list = apply_product_filters(product_list, request)
 
     paginator = Paginator(product_list, 15)

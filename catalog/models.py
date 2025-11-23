@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -241,3 +243,64 @@ class BasketItem(models.Model):
 
     def get_total_price(self: "BasketItem") -> Decimal:
         return self.product.price * self.quantity
+
+
+class ProductReservation(models.Model):
+    """Reservation model to temporarily hold products for 15 minutes after adding to basket"""
+
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="reservations"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="product_reservations",
+        null=True,
+        blank=True,
+    )
+    session_key = models.CharField(
+        max_length=40, null=True, blank=True, help_text="For anonymous users"
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    reserved_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["expires_at"]),
+            models.Index(fields=["product", "expires_at"]),
+        ]
+
+    def __str__(self: "ProductReservation") -> str:
+        user_str = (
+            self.user.username if self.user else f"Session: {self.session_key[:8]}"
+        )
+        return f"{self.product.name} - {self.quantity} reserved by {user_str}"
+
+    def save(self: "ProductReservation", *args: object, **kwargs: object) -> None:
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=15)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_active_reservations(
+        cls: type["ProductReservation"], product: Product
+    ) -> models.QuerySet["ProductReservation"]:
+        """Get all active (non-expired) reservations for a product"""
+        return cls.objects.filter(product=product, expires_at__gt=timezone.now())
+
+    @classmethod
+    def get_reserved_quantity(cls: type["ProductReservation"], product: Product) -> int:
+        """Get total reserved quantity for a product (excluding expired)"""
+        return (
+            cls.get_active_reservations(product).aggregate(
+                total=models.Sum("quantity")
+            )["total"]
+            or 0
+        )
+
+    @classmethod
+    def cleanup_expired(cls: type["ProductReservation"]) -> int:
+        """Delete expired reservations and return count of deleted items"""
+        count, _ = cls.objects.filter(expires_at__lte=timezone.now()).delete()
+        return count

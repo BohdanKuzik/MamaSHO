@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Category, Customer, Order, OrderItem, Product, Size
+from .models import (
+    Category,
+    Customer,
+    Order,
+    OrderItem,
+    Product,
+    ProductReservation,
+    Size,
+)
 
 
 @admin.register(Category)
@@ -22,6 +30,22 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ("category", "available")
     search_fields = ("name",)
     list_editable = ("price", "stock", "available")
+
+
+@admin.register(ProductReservation)
+class ProductReservationAdmin(admin.ModelAdmin):
+    list_display = (
+        "product",
+        "user",
+        "session_key",
+        "quantity",
+        "reserved_at",
+        "expires_at",
+    )
+    list_filter = ("reserved_at", "expires_at")
+    search_fields = ("product__name", "user__username")
+    readonly_fields = ("reserved_at", "expires_at")
+    date_hierarchy = "reserved_at"
 
 
 @admin.register(Customer)

@@ -321,8 +321,8 @@
                         </div>
                         <div class="stat bg-base-200 rounded-lg p-4">
                             <div class="stat-title">На складі</div>
-                            <div class="stat-value text-2xl {% if product.stock < 10 %}text-error{% else %}text-info{% endif %}">
-                                {{ product.stock }} од.
+                            <div id="product-stock-display" class="stat-value text-2xl {% if available_stock < 5 %}text-error{% else %}text-info{% endif %}">
+                                {{ available_stock }} од.
                             </div>
                         </div>
                         {% if product.sizes.all %}
@@ -347,7 +347,7 @@
                 {% endif %}
                 <div class="mt-6 pt-6 border-t border-base-300">
                     <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                    {% if product.available and product.stock > 0 %}
+                    {% if product.available and available_stock > 0 %}
                         <form method="post"
                               action="{% url 'basket_add' product_id=product.pk %}"
                               class="flex-1 w-full sm:w-auto"
@@ -418,12 +418,6 @@
                                             } catch (err) {
                                                 console.error('HX-Trigger parse error', err);
                                             }
-                                        }
-                                        if (event.detail.xhr.status === 200) {
-                                            this.textContent = 'Додано!';
-                                            setTimeout(() => {
-                                                this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'h-5 w-5 mr-2\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\' /></svg>Додати в кошик';
-                                            }, 1000);
                                         }
                                     ">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

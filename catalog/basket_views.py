@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .basket import BasketView, SessionBasket
-from .models import Product
+from .models import Product, ProductReservation
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +29,33 @@ def basket_add(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     basket = get_basket(request)
 
-    if not product.available:
+    if not product.available or product.stock <= 0:
         user_id = request.user.id if request.user.is_authenticated else None
         logger.warning(
-            "Attempt to add unavailable product",
-            extra={"product_id": product_id, "user_id": user_id},
+            "Attempt to add unavailable product or product with zero stock",
+            extra={
+                "product_id": product_id,
+                "user_id": user_id,
+                "stock": product.stock,
+                "available": product.available,
+            },
         )
+        if request.headers.get("HX-Request") == "true":
+            response = render(
+                request,
+                "catalog/partials/basket_count.html",
+                {"basket": basket},
+            )
+            response["HX-Trigger"] = json.dumps(
+                {
+                    "show-toast": {
+                        "message": "Товар недоступний для замовлення.",
+                        "type": "warning",
+                        "showBasketButton": False,
+                    }
+                }
+            )
+            return response
         return redirect("product_detail", pk=product_id)
 
     try:
@@ -89,9 +110,38 @@ def basket_add(request: HttpRequest, product_id: int) -> HttpResponse:
 
     if quantity > 0:
         basket.add(product, quantity=quantity, update_quantity=False)
+
+        if request.user.is_authenticated:
+            existing_item = basket.basket.items.filter(product=product).first()
+            total_basket_quantity = existing_item.quantity if existing_item else 0
+        else:
+            total_basket_quantity = basket.basket.get(str(product.id), 0)
+
+        ProductReservation.cleanup_expired()  # Clean up expired first
+        if request.user.is_authenticated:
+            reservation, created = ProductReservation.objects.get_or_create(
+                product=product,
+                user=request.user,
+                defaults={"quantity": total_basket_quantity},
+            )
+            if not created:
+                reservation.quantity = total_basket_quantity
+                reservation.save()
+        else:
+            session_key = request.session.session_key
+            if session_key:
+                reservation, created = ProductReservation.objects.get_or_create(
+                    product=product,
+                    session_key=session_key,
+                    defaults={"quantity": total_basket_quantity},
+                )
+                if not created:
+                    reservation.quantity = total_basket_quantity
+                    reservation.save()
+
         user_id = request.user.id if request.user.is_authenticated else None
         logger.info(
-            "Product added to basket",
+            "Product added to basket and reserved",
             extra={
                 "product_id": product_id,
                 "user_id": user_id,
@@ -110,7 +160,26 @@ def basket_add(request: HttpRequest, product_id: int) -> HttpResponse:
         )
 
     if is_htmx:
-        return render(request, "catalog/partials/basket_count.html", {"basket": basket})
+        response = render(
+            request, "catalog/partials/basket_count.html", {"basket": basket}
+        )
+
+        product.refresh_from_db()
+        if request.user.is_authenticated:
+            existing_item = basket.basket.items.filter(product=product).first()
+            basket_quantity_after = existing_item.quantity if existing_item else 0
+        else:
+            basket_quantity_after = basket.basket.get(str(product.id), 0)
+
+        available_stock = product.stock - basket_quantity_after
+        stock_response = render(
+            request,
+            "catalog/partials/product_stock.html",
+            {"available_stock": available_stock},
+        )
+        response.write(stock_response.content)
+
+        return response
 
     return redirect("product_detail", pk=product_id)
 
@@ -120,9 +189,19 @@ def basket_remove(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     basket = get_basket(request)
     basket.remove(product)
+
+    if request.user.is_authenticated:
+        ProductReservation.objects.filter(product=product, user=request.user).delete()
+    else:
+        session_key = request.session.session_key
+        if session_key:
+            ProductReservation.objects.filter(
+                product=product, session_key=session_key
+            ).delete()
+
     user_id = request.user.id if request.user.is_authenticated else None
     logger.info(
-        "Product removed from basket",
+        "Product removed from basket and reservation cleared",
         extra={
             "product_id": product_id,
             "user_id": user_id,

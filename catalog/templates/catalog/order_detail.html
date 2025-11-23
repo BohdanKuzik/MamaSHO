@@ -5,7 +5,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h2 class="text-3xl font-bold" style="color: #f89886;">Замовлення #{{ order.id }}</h2>
+            <h2 class="text-3xl font-bold" style="color: #f89886;">Замовлення</h2>
             <div class="flex flex-wrap gap-3 justify-start sm:justify-end sm:ml-6">
                 <a href="{% url 'order_list' %}" class="btn btn-outline w-full sm:w-auto text-sm sm:text-base whitespace-normal leading-tight px-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,13 +52,13 @@
                             <span>{{ order.paid_at|date:"d.m.Y H:i" }}</span>
                         </div>
                         {% endif %}
-{% if order.payment_method == 'card_online' and order.payment_status == 'pending' and order.status != 'cancelled' %}
+{% if order.payment_method == 'card_online' and order.payment_status != 'paid' and order.status != 'cancelled' %}
                         <div class="mt-4 pt-4 border-t border-base-300">
-                            <a href="{% url 'order_payment' pk=order.pk %}" class="btn btn-outline border-info text-info hover:bg-info hover:text-white w-full gap-2">
+                            <a href="{% url 'order_payment' pk=order.pk %}" class="btn btn-outline {% if order.payment_status == 'failed' %}border-error text-error hover:bg-error hover:text-white{% else %}border-info text-info hover:bg-info hover:text-white{% endif %} w-full gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
-                                Сплатити замовлення
+                                {% if order.payment_status == 'failed' %}Спробувати оплатити знову{% else %}Сплатити замовлення{% endif %}
                             </a>
                         </div>
                         {% endif %}

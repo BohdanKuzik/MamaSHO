@@ -7,12 +7,15 @@ import time
 from decimal import Decimal
 from typing import Any, Dict
 
+import requests
+
 logger = logging.getLogger(__name__)
 
 
 class WayForPay:
     SANDBOX_URL = "https://secure.wayforpay.com/pay"
     PRODUCTION_URL = "https://secure.wayforpay.com/pay"
+    API_URL = "https://api.wayforpay.com/api"
 
     def __init__(
         self: "WayForPay",
@@ -184,3 +187,92 @@ class WayForPay:
         </script>
         """
         return html
+
+    def check_payment_status(
+        self: "WayForPay", order_reference: str
+    ) -> Dict[str, Any] | None:
+        """
+        Перевіряє статус оплати через WayForPay API
+
+        Args:
+            order_reference: Посилання на замовлення (orderReference)
+
+        Returns:
+            Dict з даними про статус транзакції або None якщо помилка
+        """
+        try:
+            fields_for_signature = [
+                self.merchant_account,
+                order_reference,
+            ]
+
+            merchant_signature = self._generate_signature(fields_for_signature)
+
+            request_data = {
+                "transactionType": "CHECK_STATUS",
+                "merchantAccount": self.merchant_account,
+                "orderReference": order_reference,
+                "merchantSignature": merchant_signature,
+                "apiVersion": 1,
+            }
+
+            response = requests.post(
+                self.API_URL,
+                json=request_data,
+                timeout=10,
+                headers={"Content-Type": "application/json"},
+            )
+
+            if response.status_code != 200:
+                logger.error(
+                    f"WayForPay API error: {response.status_code}",
+                    extra={
+                        "order_reference": order_reference,
+                        "response": response.text,
+                    },
+                )
+                return None
+
+            try:
+                result = response.json()
+            except Exception as e:
+                logger.error(
+                    "WayForPay API: failed to parse JSON response",
+                    extra={"order_reference": order_reference, "error": str(e)},
+                )
+                return None
+
+            # Verify response signature
+            if "merchantSignature" in result:
+                response_signature_fields = [
+                    str(result.get("merchantAccount", "")),
+                    str(result.get("orderReference", "")),
+                    str(result.get("transactionStatus", "")),
+                    str(result.get("reasonCode", "")),
+                ]
+                expected_signature = self._generate_signature(response_signature_fields)
+                received_signature = str(result.get("merchantSignature", ""))
+
+                if expected_signature.lower() != received_signature.lower():
+                    logger.warning(
+                        "WayForPay API response signature verification failed",
+                        extra={"order_reference": order_reference},
+                    )
+                    return None
+
+            return result
+
+        except requests.exceptions.RequestException as e:
+            logger.error(
+                f"Error checking payment status via WayForPay API: {e}",
+                extra={"order_reference": order_reference},
+                exc_info=True,
+            )
+            return None
+        except Exception as e:
+            logger.error(
+                f"Unexpected error checking payment status: {e}",
+                extra={"order_reference": order_reference},
+                exc_info=True,
+            )
+            return None

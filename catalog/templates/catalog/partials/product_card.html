@@ -25,7 +25,14 @@
             {{ product.name }}
         </h2>
         <div class="flex items-center gap-1.5 mb-1">
-            {% if product.stock < 10 %}
+            {% if product.stock == 0 %}
+                <div class="badge badge-error gap-0.5 text-[10px] sm:text-xs py-0.5 px-1.5 sm:px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 sm:h-3 sm:w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span class="text-[10px] sm:text-xs">Немає в наявності</span>
+                </div>
+            {% elif product.stock < 5 %}
                 <div class="badge badge-warning gap-0.5 text-[10px] sm:text-xs py-0.5 px-1.5 sm:px-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 sm:h-3 sm:w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -63,9 +70,9 @@
             </button>
             {% endif %}
             <div class="flex gap-2 flex-1 justify-end">
+                {% if product.available and product.stock > 0 %}
                 <button type="button" 
-                        class="btn btn-sm sm:btn-md basket-add-btn flex-1 sm:flex-none {% if not product.available or product.stock == 0 %}btn-disabled opacity-50{% endif %}"
-                        {% if product.available and product.stock > 0 %}
+                        class="btn btn-sm sm:btn-md basket-add-btn flex-1 sm:flex-none"
                         hx-post="{% url 'basket_add' product_id=product.pk %}"
                         hx-vals='{"quantity": "1"}'
                         hx-target="body"
@@ -88,23 +95,29 @@
                             if (event.detail.xhr.status === 200) {
                                 window.dispatchEvent(new CustomEvent('basket-updated'));
                             }"
-                        {% else %}
+                        onclick="event.stopPropagation(); event.preventDefault();">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="text-xs sm:text-sm font-semibold">В кошик</span>
+                </button>
+                {% else %}
+                <button type="button" 
+                        class="btn btn-sm sm:btn-md basket-add-btn flex-1 sm:flex-none btn-disabled opacity-50"
                         disabled
-                        {% endif %}
                         onclick="event.stopPropagation(); event.preventDefault(); return false;">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <span class="text-xs sm:text-sm font-semibold">
-                        {% if product.available and product.stock > 0 %}
-                            В кошик
-                        {% elif product.stock == 0 %}
+                        {% if product.stock == 0 %}
                             Немає
                         {% else %}
                             Недоступний
                         {% endif %}
                     </span>
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>

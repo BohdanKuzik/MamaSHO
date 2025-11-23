@@ -7,6 +7,11 @@
         {{ basket|length }}
     </span>
     {% else %}
-    <span id="basket-count" hx-swap-oob="true" style="display: none;"></span>
+    <span id="basket-count" 
+          class="badge badge-sm absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold hidden" 
+          style="background-color: #4fc0b5; border-color: #4fc0b5; color: white;" 
+          hx-swap-oob="true">
+        0
+    </span>
     {% endif %}
 </div>

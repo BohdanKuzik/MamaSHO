@@ -339,6 +339,19 @@ def order_create(request: HttpRequest) -> HttpResponse:
                             order=order, product=product, quantity=quantity
                         )
 
+                        from catalog.models import ProductReservation
+
+                        if request.user.is_authenticated:
+                            ProductReservation.objects.filter(
+                                product=product, user=request.user
+                            ).delete()
+                        else:
+                            session_key = request.session.session_key
+                            if session_key:
+                                ProductReservation.objects.filter(
+                                    product=product, session_key=session_key
+                                ).delete()
+
                         product.stock -= quantity
                         product.save()
 
@@ -529,6 +542,9 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
     random_part = uuid4().hex[:6]
     wayforpay_reference = f"{order.id}-{unique_suffix}-{random_part}"
 
+    request.session[f"wayforpay_ref_{order.id}"] = wayforpay_reference
+    request.session.modified = True
+
     payment_data = wayforpay.create_payment_form(
         order_id=wayforpay_reference,
         amount=order.total_price,
@@ -557,17 +573,89 @@ def order_payment(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @csrf_exempt
-@login_required
 @require_http_methods(["GET", "POST"])
 def order_payment_process(request: HttpRequest, pk: int) -> HttpResponse:
-    order = get_object_or_404(Order, pk=pk, customer__user=request.user)
+    if request.user.is_authenticated:
+        order = get_object_or_404(Order, pk=pk, customer__user=request.user)
+    else:
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            return redirect(
+                "order_list" if request.user.is_authenticated else "product_list"
+            )
+
+    order.refresh_from_db()
+
+    transaction_status = None
+    if request.method == "GET":
+        transaction_status = request.GET.get("transactionStatus")
+    elif request.method == "POST":
+        transaction_status = request.POST.get("transactionStatus")
+
+    if transaction_status:
+        if transaction_status == "Approved":
+            order.payment_status = "paid"
+            order.paid_at = datetime.now()
+            order.save()
+            messages.success(request, "Оплата замовлення успішно виконана!")
+            return redirect("order_detail", pk=pk)
+        elif transaction_status in ("Declined", "Refunded", "Expired"):
+            order.payment_status = "failed"
+            order.save()
+            messages.error(request, "Помилка при оплаті замовлення. Спробуйте ще раз.")
+            return redirect("order_detail", pk=pk)
 
     if order.payment_status == "paid":
         messages.success(request, "Оплата замовлення успішно виконана!")
         return redirect("order_detail", pk=pk)
     elif order.payment_status == "failed":
         messages.error(request, "Помилка при оплаті замовлення. Спробуйте ще раз.")
-        return redirect("order_payment", pk=pk)
+        return redirect("order_detail", pk=pk)
+
+    merchant_account = getattr(settings, "WAYFORPAY_MERCHANT_ACCOUNT", "")
+    merchant_secret = getattr(settings, "WAYFORPAY_MERCHANT_SECRET_KEY", "")
+
+    if merchant_account and merchant_secret and order.payment_method == "card_online":
+        sandbox = getattr(settings, "WAYFORPAY_SANDBOX", False)
+        wayforpay = WayForPay(merchant_account, merchant_secret, sandbox=sandbox)
+
+        order_reference = None
+        if request.method == "GET":
+            order_reference = request.GET.get("orderReference")
+        elif request.method == "POST":
+            order_reference = request.POST.get("orderReference")
+
+        if not order_reference:
+            order_reference = request.session.get(f"wayforpay_ref_{order.id}")
+
+        if order_reference:
+            try:
+                status_result = wayforpay.check_payment_status(order_reference)
+                if status_result:
+                    transaction_status = status_result.get("transactionStatus")
+
+                    if transaction_status == "Approved":
+                        order.payment_status = "paid"
+                        order.paid_at = datetime.now()
+                        order.save()
+                        request.session.pop(f"wayforpay_ref_{order.id}", None)
+                        request.session.modified = True
+                        messages.success(request, "Оплата замовлення успішно виконана!")
+                        return redirect("order_detail", pk=pk)
+                    elif transaction_status in ("Declined", "Refunded", "Expired"):
+                        order.payment_status = "failed"
+                        order.save()
+                        request.session.pop(f"wayforpay_ref_{order.id}", None)
+                        request.session.modified = True
+                        messages.error(
+                            request, "Помилка при оплаті замовлення. Спробуйте ще раз."
+                        )
+                        return redirect("order_detail", pk=pk)
+            except Exception as e:
+                logger.error(
+                    f"Error checking payment status via API: {e}", exc_info=True
+                )
 
     messages.info(request, "Оплата обробляється. Оновіть сторінку через кілька секунд.")
     return redirect("order_detail", pk=pk)

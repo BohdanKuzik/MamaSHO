@@ -77,6 +77,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "catalog.context_processors.basket",
+                "catalog.context_processors.order_count",
                 "catalog.context_processors.seo",
             ],
         },

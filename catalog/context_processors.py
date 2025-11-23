@@ -6,6 +6,7 @@ from django.conf import settings
 from django.http import HttpRequest
 
 from .basket import BasketView, SessionBasket
+from .models import Customer, Order
 
 
 def basket(request: HttpRequest) -> Dict[str, BasketView | SessionBasket]:
@@ -19,6 +20,20 @@ def basket(request: HttpRequest) -> Dict[str, BasketView | SessionBasket]:
         basket_obj = SessionBasket(request)
 
     return {"basket": basket_obj}
+
+
+def order_count(request: HttpRequest) -> Dict[str, int]:
+    """Context processor для кількості замовлень"""
+    if request.user.is_authenticated:
+        try:
+            customer = Customer.objects.get(user=request.user)
+            count = Order.objects.filter(customer=customer).count()
+        except Customer.DoesNotExist:
+            count = 0
+    else:
+        count = 0
+
+    return {"order_count": count}
 
 
 def seo(request: HttpRequest) -> Dict[str, str]:
