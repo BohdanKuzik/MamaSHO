@@ -306,17 +306,36 @@ def order_create(request: HttpRequest) -> HttpResponse:
         )
         return redirect("basket_detail")
 
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+
     if request.method == "POST":
         form = OrderForm(request.POST)
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    customer, _ = Customer.objects.get_or_create(user=request.user)
-
                     order = form.save(commit=False)
                     order.customer = customer
                     order.total_price = basket.get_total_price()
                     order.save()
+
+                    # Persist latest delivery data for future orders
+                    delivery_fields = {
+                        "phone": form.cleaned_data.get("delivery_phone"),
+                        "delivery_region": form.cleaned_data.get("delivery_region"),
+                        "delivery_city": form.cleaned_data.get("delivery_city"),
+                        "delivery_address": form.cleaned_data.get("delivery_address"),
+                        "delivery_postal_code": form.cleaned_data.get(
+                            "delivery_postal_code"
+                        ),
+                        "delivery_district": form.cleaned_data.get("delivery_district"),
+                    }
+                    updated_fields = []
+                    for field_name, value in delivery_fields.items():
+                        if value:
+                            setattr(customer, field_name, value)
+                            updated_fields.append(field_name)
+                    if updated_fields:
+                        customer.save(update_fields=updated_fields)
 
                     for item in basket:
                         product = item["product"]
@@ -418,15 +437,15 @@ def order_create(request: HttpRequest) -> HttpResponse:
                     "Сталася помилка при створенні замовлення. Будь ласка, спробуйте ще раз.",
                 )
     else:
-        customer, _ = Customer.objects.get_or_create(user=request.user)
-        initial_data = {}
-        if customer.phone:
-            initial_data["delivery_phone"] = customer.phone
-        if customer.address:
-            initial_data["delivery_address"] = customer.address
-        if request.user.email:
-            initial_data["email"] = request.user.email
-
+        initial_data = {
+            "delivery_phone": customer.phone or "",
+            "delivery_region": customer.delivery_region or "",
+            "delivery_city": customer.delivery_city or "",
+            "delivery_address": customer.delivery_address or "",
+            "delivery_postal_code": customer.delivery_postal_code or "",
+            "delivery_district": customer.delivery_district or "",
+            "email": request.user.email or "",
+        }
         form = OrderForm(initial=initial_data)
 
     return render(

@@ -96,6 +96,18 @@
                         
                         <div class="form-control mb-4">
                             <label class="label">
+                                <span class="label-text">{{ form.delivery_district.label }}</span>
+                            </label>
+                            {{ form.delivery_district }}
+                            {% if form.delivery_district.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.delivery_district.errors }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-control mb-4">
+                            <label class="label">
                                 <span class="label-text">{{ form.delivery_postal_code.label }}</span>
                             </label>
                             {{ form.delivery_postal_code }}
@@ -191,6 +203,60 @@
         const form = document.getElementById("order-form");
         if (!form) {
             return;
+        }
+
+        const phoneInput = form.querySelector('input[name="delivery_phone"]');
+        const PHONE_PREFIX = "+380";
+
+        const normalizePhoneValue = (value = "") => {
+            const digits = value.replace(/[^\d]/g, "");
+            const localPart = digits.slice(-9);
+            return PHONE_PREFIX + localPart;
+        };
+
+        if (phoneInput) {
+            const ensurePrefix = () => {
+                if (!phoneInput.value || phoneInput.value === PHONE_PREFIX) {
+                    phoneInput.value = PHONE_PREFIX;
+                    return;
+                }
+
+                if (!phoneInput.value.startsWith(PHONE_PREFIX)) {
+                    phoneInput.value = normalizePhoneValue(phoneInput.value);
+                }
+            };
+
+            ensurePrefix();
+
+            phoneInput.addEventListener("focus", () => {
+                ensurePrefix();
+                requestAnimationFrame(() => {
+                    phoneInput.setSelectionRange(
+                        phoneInput.value.length,
+                        phoneInput.value.length
+                    );
+                });
+            });
+
+            phoneInput.addEventListener("input", () => {
+                if (!phoneInput.value.startsWith(PHONE_PREFIX)) {
+                    phoneInput.value = normalizePhoneValue(phoneInput.value);
+                }
+            });
+
+            phoneInput.addEventListener("keydown", (event) => {
+                const isRemovingPrefix =
+                    (event.key === "Backspace" || event.key === "Delete") &&
+                    phoneInput.selectionStart <= PHONE_PREFIX.length &&
+                    phoneInput.selectionEnd <= PHONE_PREFIX.length;
+                if (isRemovingPrefix) {
+                    event.preventDefault();
+                    phoneInput.setSelectionRange(
+                        PHONE_PREFIX.length,
+                        PHONE_PREFIX.length
+                    );
+                }
+            });
         }
 
         const validateField = (field) => {

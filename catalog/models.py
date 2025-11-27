@@ -94,9 +94,21 @@ phone_validator = RegexValidator(
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(
-        max_length=20, blank=True, null=True, validators=[phone_validator]
+        max_length=12, blank=True, null=True, validators=[phone_validator]
     )
-    address = models.TextField(blank=True, null=True)
+    delivery_region = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="Область"
+    )
+    delivery_city = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="Місто"
+    )
+    delivery_address = models.TextField(blank=True, null=True)
+    delivery_postal_code = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Поштовий індекс"
+    )
+    delivery_district = models.CharField(
+        max_length=120, blank=True, null=True, verbose_name="Район"
+    )
 
     def __str__(self: "Customer") -> str:
         return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
@@ -157,6 +169,9 @@ class Order(models.Model):
     )
     delivery_postal_code = models.CharField(
         max_length=10, blank=True, null=True, verbose_name="Поштовий індекс"
+    )
+    delivery_district = models.CharField(
+        max_length=120, blank=True, null=True, verbose_name="Район"
     )
     delivery_phone = models.CharField(
         max_length=20,

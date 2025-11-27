@@ -90,6 +90,16 @@ class OrderForm(forms.ModelForm):
             }
         ),
     )
+    delivery_district = forms.CharField(
+        label="Район (необов'язково)",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Наприклад: Голосіївський район",
+            }
+        ),
+    )
     delivery_postal_code = forms.CharField(
         label="Поштовий індекс",
         max_length=10,
@@ -151,6 +161,7 @@ class OrderForm(forms.ModelForm):
             "delivery_region",
             "delivery_city",
             "delivery_address",
+            "delivery_district",
             "delivery_postal_code",
             "delivery_phone",
             "email",
@@ -159,9 +170,17 @@ class OrderForm(forms.ModelForm):
         ]
 
     def clean_delivery_phone(self: "OrderForm") -> str:
-        phone = self.cleaned_data.get("delivery_phone")
-        if phone and not phone.startswith("+380"):
+        phone = self.cleaned_data.get("delivery_phone", "")
+        if not phone:
+            return phone
+
+        digits = "".join(ch for ch in phone if ch.isdigit())
+        if len(digits) < 9:
             raise forms.ValidationError(
-                "Номер телефону повинен починатися з +380 (український формат)"
+                "Номер телефону повинен містити щонайменше 9 цифр."
             )
-        return phone
+
+        local_part = digits[-9:]
+        normalized_phone = "+380" + local_part
+        self.cleaned_data["delivery_phone"] = normalized_phone
+        return normalized_phone
