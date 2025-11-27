@@ -19,7 +19,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import include, path, re_path
+from django.views.generic.base import RedirectView
 from django.views.static import serve
 
 from catalog.sitemaps import sitemaps
@@ -34,6 +36,13 @@ urlpatterns = [
     path("accounts/signup/", views.signup_view, name="signup"),
     path("__reload__/", include("django_browser_reload.urls")),
     path("robots.txt", views.robots_txt, name="robots_txt"),
+    path(
+        "favicon.ico",
+        RedirectView.as_view(
+            url=staticfiles_storage.url("images/favicon.ico"), permanent=True
+        ),
+        name="favicon",
+    ),
     path(
         "sitemap.xml",
         sitemap,
