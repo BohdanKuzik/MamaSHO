@@ -94,7 +94,7 @@ phone_validator = RegexValidator(
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(
-        max_length=12, blank=True, null=True, validators=[phone_validator]
+        max_length=13, blank=True, null=True, validators=[phone_validator]
     )
     delivery_region = models.CharField(
         max_length=100, blank=True, null=True, verbose_name="Область"
